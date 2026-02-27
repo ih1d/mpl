@@ -22,9 +22,9 @@ common warnings
 executable mpli
     import:           warnings
     main-is:          Main.hs
-    build-depends:
-        base ^>=4.18.3.0,
-        mpl-core
+    build-depends:    base ^>=4.18.3.0
+                    , mpl-core
+                    , optparse-applicative
 
     hs-source-dirs:   src
     default-language: GHC2021

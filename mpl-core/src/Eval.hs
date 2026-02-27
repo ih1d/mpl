@@ -1,52 +1,19 @@
-module Eval (eval, tc, runM) where
+module Eval (tc, eval, initEnv, runM) where
 
+import MPL
+import Control.Monad.Except (throwError)
 import Syntax
-import Control.Monad.State
-import Control.Monad.Except
-import Text.Parsec (ParseError)
 import Control.Monad (void)
-import Prelude hiding (print)
 
-type Env = [(Id, Value)]
+initEnv :: Env
+initEnv = [("print", BuiltinV "print")]
 
-io :: IO a -> M a
-io = liftIO
-
-builtIns :: [(Id, Expr -> M Value)]
-builtIns =
-    [("print", print)]
-
-print :: Expr -> M Value
-print e = do
-    v <- eval e
-    io $ putStr (show v)
+applyBuiltin :: Id -> Value -> M Value
+applyBuiltin "print" v = do
+    io $ print v
     pure $ UnitV ()
-
-data Error
-    = ParseE ParseError
-    | RuntimeError String
-    | TypeError Types Types
-    | Unbound Id
-instance Show Error where
-    show (ParseE pe) = show pe
-    show (TypeError t0 t1) = "expected type: " ++ show t0 ++ ", got: " ++ show t1
-    show (Unbound v) = "unbound name: " ++ v
-    show (RuntimeError msg) = msg
-
-type M a = ExceptT Error (StateT Env IO) a
-
-runM :: M a -> IO (Either Error a)
-runM m = evalStateT (runExceptT m) []
-
-lookupVar :: Id -> M Value
-lookupVar var = do
-    env <- get
-    case lookup var env of
-        Nothing -> throwError (Unbound var)
-        Just val -> pure val
-
-bindVar :: Id -> Value -> M ()
-bindVar var val = get >>= \env -> put ((var, val): env)
+    
+applyBuiltin name _ = throwError $ RuntimeError ("unknown builtin: " ++ name)
 
 -- type checker
 tc :: Expr -> M Types
@@ -54,7 +21,8 @@ tc (Const (IntV _)) = pure IntT
 tc (Const (DoubleV _)) = pure DoubleT
 tc (Const (BoolV _)) = pure BoolT
 tc (Const (StringV _)) = pure StringT
-tc (Const (FunV _)) = pure FunT
+tc (Const (ClosureV {})) = pure FunT
+tc (Const (BuiltinV _)) = pure FunT
 tc (Const (DNA _)) = pure DNAT
 tc (Const (RNA _)) = pure RNAT
 tc (UnOp Not (Const (BoolV _))) = pure BoolT
@@ -110,6 +78,7 @@ tc (LetR _ _ e) = tc e
 tc (Lam _ _) = pure FunT
 tc (App f _) = tc f
 
+
 -- evaluator
 eval :: Expr -> M Value
 eval (Const i) = pure i
@@ -132,7 +101,6 @@ eval (BinOp op e0 e1) =
         Lt -> undefined
         LtEq -> undefined
         Pipe -> undefined
-
 eval (If cnd e0 e1) = do
     cnd' <- eval cnd
     case cnd' of
@@ -146,11 +114,28 @@ eval (Let v e0 e1) = do
     val <- eval e0
     bindVar v val
     eval e1
-eval (LetF{}) = undefined
-eval (LetR{}) = undefined
-eval (Lam{}) = undefined
-eval (App f args) = do
+eval (LetF name params body) = do
+    env <- getEnv
+    let closure = ClosureV env params body
+    bindVar name closure
+    pure closure
+eval (LetR name params body) = do
+    env <- getEnv
+    let closure = ClosureV ((name, closure) : env) params body
+    bindVar name closure
+    pure closure
+eval (Lam params body) = do
+    env <- getEnv
+    pure $ ClosureV env params body
+eval (App f arg) = do
     f' <- eval f
+    arg' <- eval arg
     case f' of
-        FunV f'' -> pure $ f'' args
-        _ -> undefined
+        ClosureV cenv (p:ps) body -> do
+            let newEnv = (p, arg') : cenv
+            if null ps
+                then withEnv newEnv (eval body)
+                else pure $ ClosureV newEnv ps body
+        ClosureV _ [] _ -> throwError $ RuntimeError "too many arguments applied"
+        BuiltinV name -> applyBuiltin name arg'
+        _ -> throwError $ RuntimeError "application of non-function"

@@ -32,7 +32,8 @@ data Value
     | BoolV Bool
     | StringV Text
     | UnitV ()
-    | FunV (Expr -> Value)
+    | ClosureV [(Id, Value)] [Id] Expr
+    | BuiltinV Id
     | DNA (Vector Word64, Int)
     | RNA (Vector Word64, Int)
 
@@ -43,7 +44,8 @@ instance Show Value where
     show (BoolV False) = "false"
     show (UnitV u) = show u
     show (StringV t) = unpack t
-    show (FunV _) = "<function>"
+    show (ClosureV {}) = "<closure>"
+    show (BuiltinV name) = "<builtin:" ++ name ++ ">"
     show (DNA (ws, len)) = showSeq dnaChar ws len
     show (RNA (ws, len)) = showSeq rnaChar ws len
 
