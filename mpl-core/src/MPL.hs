@@ -5,8 +5,6 @@ import Control.Monad.State
 import Control.Monad.Except
 import Text.Parsec (ParseError)
 
-type Env = [(Id, Expr)]
-
 data Error
     = ParseE ParseError
     | RuntimeError String

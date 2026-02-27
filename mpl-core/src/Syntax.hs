@@ -1,9 +1,10 @@
 module Syntax where
 
-import Data.Text (Text, unpack)
 import BioPrims
 
 type Id = String
+
+type Env = [(Id, Expr)]
 
 data Types
     = IntT
@@ -34,9 +35,9 @@ data Value
     = IntV Integer
     | DoubleV Double
     | BoolV Bool
-    | StringV Text
+    | StringV String
     | UnitV ()
-    | ClosureV [(Id, Value)] [Id] Expr
+    | ClosureV [Id] Env Expr
     | DNAV DNA
     | RNAV RNA
 
@@ -46,7 +47,7 @@ instance Show Value where
     show (BoolV True) = "true"
     show (BoolV False) = "false"
     show (UnitV u) = show u
-    show (StringV t) = unpack t
+    show (StringV t) = t
     show (ClosureV {}) = "<closure>"
     show (DNAV dna)  = show dna
     show (RNAV rna) = show rna

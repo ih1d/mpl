@@ -41,6 +41,9 @@ parseInt = Const . IntV <$> mplNatural
 parseBool :: Parser Expr
 parseBool = Const . BoolV <$> (True <$ mplReserved "true" <|> False <$ mplReserved "false")
 
+parseStr :: Parser Expr
+parseStr = Const . StringV <$> mplStringLiteral
+
 parseVar :: Parser Expr
 parseVar = Var <$> mplIdentifier
 
@@ -77,7 +80,7 @@ parseRNA = do
     return $ Const (RNAV (RNA (fromList (pack rna), len)))
 
 parseAtom :: Parser Expr
-parseAtom = mplParens parseExpr <|> parseInt <|> parseBool <|> parseDNA <|> parseRNA <|> parseVar
+parseAtom = mplParens parseExpr <|> parseInt <|> parseBool <|> parseStr <|> parseDNA <|> parseRNA <|> parseVar
 
 parseApp :: Parser Expr
 parseApp = foldl1 App <$> many1 parseAtom
@@ -131,4 +134,4 @@ parseExpr :: Parser Expr
 parseExpr = try parseLetR <|> try parseLet <|> try parseLetF <|> parseLam <|> parseIf <|> parseTerm
 
 parser :: String -> Either ParseError Expr
-parser = parse parseExpr "mpl"
+parser = parse (mplWhiteSpace *> parseExpr <* eof) "mpl"

@@ -1,9 +1,10 @@
-module Eval (eval, initEnv, runM, tc) where
+module Eval (runEval) where
 
 import MPL
 import Control.Monad.Except (throwError)
 import Syntax
 import Control.Monad (void)
+import Parser
 
 initEnv :: Env
 initEnv = 
@@ -216,3 +217,10 @@ eval (LetR{}) = undefined
 eval (Lam _ _) = undefined
 eval (App _ _) = undefined
 eval (Primitive _) = undefined
+
+runEval :: String -> IO (Either Error Value)
+runEval str = case parser str of
+    Left perr -> runM (throwError $ ParseE perr) initEnv
+    Right expr -> do
+        void $ runM (tc expr) initEnv
+        runM (eval expr) initEnv
