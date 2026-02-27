@@ -2,7 +2,7 @@ module Main where
     
 import System.IO (hSetBuffering, stdout, BufferMode(NoBuffering))
 import Parser
-import Eval (tc, eval, initEnv, runM)
+import Eval (eval, initEnv, runM)
 
 main :: IO ()
 main = hSetBuffering stdout NoBuffering >> repl
@@ -14,7 +14,7 @@ repl = do
     case parser l of
         Left err -> print err
         Right expr -> do
-            mval <- runM (tc expr >> eval expr) initEnv
+            mval <- runM (eval expr) initEnv
             case mval of
                 Left err' -> print err'
                 Right val -> print val

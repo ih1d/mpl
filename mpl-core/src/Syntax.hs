@@ -12,9 +12,11 @@ data Types
     | BoolT
     | DoubleT
     | StringT
+    | NumT
     | FunT
     | DNAT
     | RNAT
+    | UnitT
     deriving (Eq)
 
 instance Show Types where
@@ -25,6 +27,8 @@ instance Show Types where
     show DoubleT = "double"
     show DNAT = "DNA"
     show RNAT = "RNA"
+    show NumT = "numerical"
+    show UnitT = "()"
 
 data Value
     = IntV Integer
