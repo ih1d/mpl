@@ -60,15 +60,29 @@ tc (Const (RNA _)) = pure RNAT
 tc (UnOp Not (Const (BoolV _))) = pure BoolT
 tc (UnOp Not e) = do
     t <- tc e
-    throwError $ TypeError t t
+    throwError $ TypeError BoolT t
 tc (UnOp op _) = throwError $ RuntimeError ("operator: " ++ show op ++ " is not unary")
 tc (BinOp op e0 e1) =
     case op of
-        Add -> undefined
-        Sub -> undefined
-        Mul -> undefined
-        Div -> undefined
-        Pow -> undefined
+        Add -> do
+            t0 <- tc e0
+            t1 <- tc e1
+            if t0 == t1 then pure t0 else throwError $ TypeError t0 t1
+        Sub -> do
+            t0 <- tc e0
+            t1 <- tc e1
+            if t0 == t1 then pure t0 else throwError $ TypeError t0 t1
+        Mul -> do
+            t0 <- tc e0
+            t1 <- tc e1
+            if t0 == t1 then pure t0 else throwError $ TypeError t0 t1
+        Div -> do
+            t0 <- tc e0
+            t1 <- tc e1
+            if t0 == t1 then pure t0 else throwError $ TypeError t0 t1
+        Pow -> do
+            t0 <- tc e0
+            if t0 == IntT || t0 == DoubleT then pure t0 else throwError $ TypeError t0 IntT
         And -> undefined
         Or -> undefined
         Not -> undefined

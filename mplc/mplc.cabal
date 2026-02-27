@@ -1,0 +1,29 @@
+cabal-version:      3.0
+name:               mplc
+version:            0.1.0.0
+synopsis:           Compiler for El MegaProbe Language
+author:             Isaac Hiram Lopez Diaz
+maintainer:         isaac.lopez@upr.edu
+category:           Language
+build-type:         Simple
+extra-doc-files:    README.md
+
+common warnings
+    ghc-options:
+        -Wall
+        -Wcompat
+        -Widentities
+        -Wincomplete-record-updates
+        -Wincomplete-uni-patterns
+        -Wmissing-home-modules
+        -Wredundant-constraints
+        -Wunused-packages
+
+executable mplc
+    import:           warnings
+    main-is:          Main.hs
+    build-depends:
+        base ^>=4.18.3.0,
+        mpl-core
+    hs-source-dirs:   src
+    default-language: GHC2021
