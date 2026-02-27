@@ -10,7 +10,7 @@ A programming language for high performance genomics computation
 
 ## Building & Running
 
-Ensure to install [Haskell](https://haskell.org). Recommended way is via [ghcup]
+Ensure to install [Haskell](https://haskell.org). Recommended way is via [ghcup](https://www.haskell.org/ghcup/)
 
 To build:
 
