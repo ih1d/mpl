@@ -1,0 +1,52 @@
+cabal-version:      3.0
+name:               mpl
+version:            0.1.0.0
+synopsis:           A Programming Language with Algebraic Effects for Dataframes
+author:             Isaac Hiram Lopez Diaz
+maintainer:         isaac.lopez@upr.edu
+category:           Language
+build-type:         Simple
+extra-doc-files:    README.md
+
+common warnings
+    ghc-options:
+        -Wall
+        -Wcompat
+        -Widentities
+        -Wincomplete-record-updates
+        -Wincomplete-uni-patterns
+        -Wmissing-home-modules
+        -Wredundant-constraints
+        -Wunused-packages
+
+library
+    import:           warnings
+    default-extensions:
+        OverloadedStrings
+    exposed-modules:
+        Parser
+        Eval
+    other-modules:
+        Syntax
+        Lexer
+
+    build-depends:    base   ^>=4.18.3.0
+                    , parsec
+                    , mtl
+                    , vector
+                    , containers
+                    , cassava
+                    , bytestring
+                    , text
+    hs-source-dirs:   src
+    default-language: GHC2021
+
+executable mpl
+    import:           warnings
+    main-is:          Main.hs
+    build-depends:
+        base ^>=4.18.3.0,
+        mpl
+
+    hs-source-dirs:   app
+    default-language: GHC2021
