@@ -10,6 +10,7 @@ import Data.Word
 import Data.Vector (fromList)
 import Lexer
 import Syntax
+import BioPrims
 
 binary :: String -> Op -> Assoc -> Operator String () Identity Expr
 binary s op = Infix (mplReservedOp s >> return (BinOp op))
@@ -57,7 +58,7 @@ parseDNA = do
         pack cs = let (chunk, rest) = splitAt 32 cs
                       w = foldl' (\acc c -> (acc `shiftL` 2) .|. encode c) 0 chunk
                   in w : pack rest
-    return $ Const (DNA (fromList (pack dna), len))
+    return $ Const (DNAV (DNA (fromList (pack dna), len)))
 
 parseRNA :: Parser Expr
 parseRNA = do
@@ -73,7 +74,7 @@ parseRNA = do
         pack cs = let (chunk, rest) = splitAt 32 cs
                       w = foldl' (\acc c -> (acc `shiftL` 2) .|. encode c) 0 chunk
                   in w : pack rest
-    return $ Const (RNA (fromList (pack rna), len))
+    return $ Const (RNAV (RNA (fromList (pack rna), len)))
 
 parseAtom :: Parser Expr
 parseAtom = mplParens parseExpr <|> parseInt <|> parseBool <|> parseDNA <|> parseRNA <|> parseVar

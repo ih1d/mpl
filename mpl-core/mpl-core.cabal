@@ -30,6 +30,7 @@ library
         Syntax
         Lexer
         MPL
+        BioPrims
     build-depends:    base   ^>=4.18.3.0
                     , parsec
                     , mtl

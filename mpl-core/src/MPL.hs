@@ -5,7 +5,7 @@ import Control.Monad.State
 import Control.Monad.Except
 import Text.Parsec (ParseError)
 
-type Env = [(Id, Value)]
+type Env = [(Id, Expr)]
 
 data Error
     = ParseE ParseError
@@ -35,17 +35,17 @@ withEnv env action = do
     put old
     pure result
 
-lookupVar :: Id -> M Value
+lookupVar :: Id -> M Expr
 lookupVar var = do
     env <- getEnv
     case lookup var env of
         Nothing -> throwError (Unbound var)
-        Just val -> pure val
+        Just expr -> pure expr
 
-bindVar :: Id -> Value -> M ()
-bindVar var val = do
+bindVar :: Id -> Expr -> M ()
+bindVar var expr = do
     env <- getEnv
-    put ((var, val): env)
+    put ((var, expr): env)
 
 io :: IO a -> M a
 io = liftIO

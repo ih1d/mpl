@@ -7,17 +7,14 @@ import Control.Monad (void)
 
 initEnv :: Env
 initEnv = 
-    [ ("print", BuiltinV "print")
-    , ("complement", BuiltinV "complement")
-    , ("transcribe", BuiltinV "transcribe")
-    , ("translate", BuiltinV "translate")
-    , ("reverse_complement", BuiltinV "reverse_complement")
-    , ("read_csv", BuiltinV "read_csv")
-    , ("read_fastq", BuiltinV "read_fastq")
+    [ ("print", Primitive "print")
+    , ("complement", Primitive "complement")
+    , ("transcribe", Primitive "transcribe")
+    , ("translate", Primitive "translate")
+    , ("reverse_complement", Primitive "reverse_complement")
+    , ("read_csv", Primitive "read_csv")
+    , ("read_fastq", Primitive "read_fastq")
     ]
-
-applyBuiltin :: Id -> Value -> M Value
-applyBuiltin name _ = throwError $ RuntimeError ("unknown builtin: " ++ name)
 
 -- type checker
 tc :: Expr -> M Types
@@ -27,9 +24,8 @@ tc (Const (BoolV _)) = pure BoolT
 tc (Const (StringV _)) = pure StringT
 tc (Const (UnitV _)) = pure UnitT
 tc (Const (ClosureV {})) = pure FunT
-tc (Const (BuiltinV _)) = pure FunT
-tc (Const (DNA _)) = pure DNAT
-tc (Const (RNA _)) = pure RNAT
+tc (Const (DNAV _)) = pure DNAT
+tc (Const (RNAV _)) = pure RNAT
 tc (UnOp Not (Const (BoolV _))) = pure BoolT
 tc (UnOp Not e) = do
     t <- tc e
@@ -151,7 +147,7 @@ tc (If cnd e0 e1) = do
             te1 <- tc e1
             if te0 == te1 then pure te0 else throwError $ TypeError te0 te1
         _ -> throwError $ TypeError BoolT tcnd
-tc (Var v) = lookupVar v >>= tc . Const
+tc (Var v) = lookupVar v >>= tc
 tc (Let _ e0 e1) = do
     void $ tc e0
     tc e1
@@ -159,6 +155,7 @@ tc (LetF _ _ e) = tc e
 tc (LetR _ _ e) = tc e
 tc (Lam _ _) = pure FunT
 tc (App f _) = tc f
+tc (Primitive _) = pure PrimitiveT
 
 
 -- evaluator
@@ -210,12 +207,12 @@ eval (If cnd e0 e1) = do
         BoolV False -> eval e1
         _ -> do
             throwError $ RuntimeError "if expects bool"
-eval (Var v) = lookupVar v
+eval (Var v) = lookupVar v >>= eval
 eval (Let v e0 e1) = do
-    val <- eval e0
-    bindVar v val
+    bindVar v e0
     eval e1
 eval (LetF{}) = undefined
 eval (LetR{}) = undefined
 eval (Lam _ _) = undefined
 eval (App _ _) = undefined
+eval (Primitive _) = undefined
