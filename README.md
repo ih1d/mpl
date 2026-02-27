@@ -4,9 +4,9 @@ A programming language for high performance genomics computation
 
 ## Structure
 
-- mpl-core is the core language
-- mpli is the interpreter
-- mplc is the compiler **WIP**
+- [mpl-core](mpl-core) is the core language
+- [mpli](mpli) is the interpreter
+- [mplc](mplc) is the compiler **WIP**
 
 ## Building & Running
 
