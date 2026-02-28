@@ -64,7 +64,7 @@ tc (BinOp op e0 e1) = do
                 (t, _) -> throwError $ TypeError NumT t
         Div -> 
             case (t0, t1) of
-                (IntT, IntT) -> pure IntT
+                (IntT, IntT) -> pure DoubleT
                 (DoubleT, DoubleT) -> pure DoubleT
                 (IntT, DoubleT) -> pure DoubleT
                 (DoubleT, IntT) -> pure DoubleT
