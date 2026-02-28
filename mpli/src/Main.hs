@@ -10,8 +10,11 @@ repl :: IO ()
 repl = do
     putStr "MPL> "
     l <- getLine
-    mval <- runEval l
-    case mval of
-        Left err -> print err
-        Right (v, t)-> putStrLn (show v ++ " : " ++ show t)
-    repl
+    if null l
+        then repl
+        else do
+            mval <- runEval l
+            case mval of
+                Left err -> print err
+                Right (v, t)-> putStrLn (show v ++ " : " ++ show t)
+            repl

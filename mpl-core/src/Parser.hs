@@ -38,6 +38,9 @@ opTable =
 parseInt :: Parser Expr
 parseInt = Const . IntV <$> mplNatural
 
+parseDouble :: Parser Expr
+parseDouble = Const . DoubleV <$> mplFloat
+
 parseBool :: Parser Expr
 parseBool = Const . BoolV <$> (True <$ mplReserved "true" <|> False <$ mplReserved "false")
 
@@ -82,7 +85,7 @@ parseRNA = try $ do
     return $ Const (RNAV (RNA (fromList (pack rna), len)))
 
 parseAtom :: Parser Expr
-parseAtom = mplParens parseExpr <|> parseInt <|> parseBool <|> parseStr <|> parseDNA <|> parseRNA <|> parseVar
+parseAtom = mplParens parseExpr <|> try parseDouble <|> parseInt <|> parseBool <|> parseStr <|> parseDNA <|> parseRNA <|> parseVar
 
 parseApp :: Parser Expr
 parseApp = foldl1 App <$> many1 parseAtom
