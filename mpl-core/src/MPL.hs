@@ -22,6 +22,9 @@ newtype M a = M { unM :: ExceptT Error (StateT Env IO) a }
 runM :: M a -> Env -> IO (Either Error a)
 runM (M m) = evalStateT (runExceptT m)
 
+runMState :: M a -> Env -> IO (Either Error a, Env)
+runMState (M m) env = runStateT (runExceptT m) env
+
 getEnv :: M Env
 getEnv = get
 

@@ -1,4 +1,4 @@
-module Eval (runEval) where
+module Eval (runEval, initEnv, Env) where
 
 import MPL
 import Control.Monad.Except (throwError)
@@ -271,15 +271,21 @@ eval (Lam _ _) = undefined
 eval (App _ _) = undefined
 eval (Primitive _) = undefined
 
-runEval :: String -> IO (Either Error (Value, Types))
-runEval str = case parser str of
-    Left perr -> runM (throwError $ ParseE perr) initEnv
+runEval :: Env -> String -> IO (Either Error (Value, Types), Env)
+runEval env str = case parser str of
+    Left perr -> do
+        r <- runM (throwError $ ParseE perr) env
+        pure (r, env)
     Right expr -> do
-        mt <- runM (tc expr) initEnv
+        (mt, _) <- runMState (tc expr) env
         case mt of
-            Left tr -> runM (throwError tr) initEnv
+            Left tr -> do
+                r <- runM (throwError tr) env
+                pure (r, env)
             Right t -> do
-                mv <- runM (eval expr) initEnv
+                (mv, env') <- runMState (eval expr) env
                 case mv of
-                    Left vr -> runM (throwError vr) initEnv
-                    Right v -> pure $ Right (v, t)
+                    Left vr -> do
+                        r <- runM (throwError vr) env
+                        pure (r, env)
+                    Right v -> pure (Right (v, t), env')

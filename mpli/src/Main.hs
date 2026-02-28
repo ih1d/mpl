@@ -1,20 +1,20 @@
 module Main where
-    
+
 import System.IO (hSetBuffering, stdout, BufferMode(NoBuffering))
-import Eval 
+import Eval
 
 main :: IO ()
-main = hSetBuffering stdout NoBuffering >> repl
+main = hSetBuffering stdout NoBuffering >> repl initEnv
 
-repl :: IO ()
-repl = do
+repl :: Env -> IO ()
+repl env = do
     putStr "MPL> "
     l <- getLine
     if null l
-        then repl
+        then repl env
         else do
-            mval <- runEval l
+            (mval, env') <- runEval env l
             case mval of
                 Left err -> print err
-                Right (v, t)-> putStrLn (show v ++ " : " ++ show t)
-            repl
+                Right (v, t) -> putStrLn (show v ++ " : " ++ show t)
+            repl env'
