@@ -13,5 +13,5 @@ repl = do
     mval <- runEval l
     case mval of
         Left err -> print err
-        Right v -> print v
+        Right (v, t)-> putStrLn (show v ++ " : " ++ show t)
     repl
