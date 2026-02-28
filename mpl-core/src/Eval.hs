@@ -149,8 +149,9 @@ tc (If cnd e0 e1) = do
             if te0 == te1 then pure te0 else throwError $ TypeError te0 te1
         _ -> throwError $ TypeError BoolT tcnd
 tc (Var v) = lookupVar v >>= tc
-tc (Let _ e0 e1) = do
+tc (Let v e0 e1) = do
     void $ tc e0
+    bindVar v e0
     tc e1
 tc (LetF _ _ e) = tc e
 tc (LetR _ _ e) = tc e
