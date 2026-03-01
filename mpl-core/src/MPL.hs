@@ -23,7 +23,7 @@ runM :: M a -> Env -> IO (Either Error a)
 runM (M m) = evalStateT (runExceptT m)
 
 runMState :: M a -> Env -> IO (Either Error a, Env)
-runMState (M m) env = runStateT (runExceptT m) env
+runMState (M m) = runStateT (runExceptT m)
 
 getEnv :: M Env
 getEnv = get
