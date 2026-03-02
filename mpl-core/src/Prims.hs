@@ -1,4 +1,6 @@
-module BioPrims (DNA(..), RNA(..)) where
+module Prims (
+    DNA(..), 
+    RNA(..)) where
 
 import Data.Vector (Vector, (!))
 import Data.Word (Word64)

@@ -3,7 +3,6 @@ module Eval (runEval, emptyEnv, Env) where
 import MPL
 import Control.Monad.Except (throwError)
 import Syntax
-import Control.Monad (void)
 import Parser
 
 emptyEnv :: Env
@@ -145,15 +144,12 @@ tc (If cnd e0 e1) = do
             te1 <- tc e1
             if te0 == te1 then pure te0 else throwError $ TypeError te0 te1
         _ -> throwError $ TypeError BoolT tcnd
-tc (Var v) = lookupVar v >>= tc
-tc (Let v e0 e1) = do
-    void $ tc e0
-    bindVar v e0
-    tc e1
-tc (LetF _ _ e) = tc e
-tc (LetR _ _ e) = tc e
-tc (Lam _ _) = pure FunT
-tc (App f _) = tc f
+tc (Var _) = undefined
+tc (Let{} ) = undefined
+tc (LetF{}) = undefined
+tc (LetR{}) = undefined
+tc (Lam _ _) = undefined
+tc (App _ _) = undefined
 
 -- evaluator
 eval :: Expr -> M Value
@@ -258,9 +254,10 @@ eval (If cnd e0 e1) = do
         BoolV True -> eval e0
         BoolV False -> eval e1
         _ -> throwError $ RuntimeError "if expects bool"
-eval (Var v) = lookupVar v >>= eval
+eval (Var v) = lookupVar v
 eval (Let v e0 e1) = do
-    bindVar v e0
+    v0 <- eval e0
+    bindVar v v0
     eval e1
 eval (LetF{}) = undefined
 eval (LetR{}) = undefined

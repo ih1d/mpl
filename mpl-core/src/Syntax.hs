@@ -1,10 +1,10 @@
 module Syntax where
 
-import BioPrims
+import Prims
 
 type Id = String
 
-type Env = [(Id, Expr)]
+type Env = [(Id, Value)]
 
 data Types
     = IntT

@@ -36,17 +36,17 @@ withEnv env action = do
     put old
     pure result
 
-lookupVar :: Id -> M Expr
+lookupVar :: Id -> M Value
 lookupVar var = do
     env <- getEnv
     case lookup var env of
         Nothing -> throwError (Unbound var)
-        Just expr -> pure expr
+        Just val -> pure val
 
-bindVar :: Id -> Expr -> M ()
-bindVar var expr = do
+bindVar :: Id -> Value -> M ()
+bindVar var val = do
     env <- getEnv
-    put ((var, expr): env)
+    put ((var, val): env)
 
 io :: IO a -> M a
 io = liftIO

@@ -30,13 +30,12 @@ library
         Syntax
         Lexer
         MPL
-        BioPrims
+        Prims
     build-depends:    base   ^>=4.18.3.0
                     , parsec
                     , mtl
                     , vector
                     , containers
-                    , cassava
                     , bytestring
                     , lens
     hs-source-dirs:   src
