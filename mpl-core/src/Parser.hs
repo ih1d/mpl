@@ -10,7 +10,7 @@ import Data.Word
 import Data.Vector (fromList)
 import Lexer
 import Syntax
-import Prims
+import Types
 
 binary :: String -> Op -> Assoc -> Operator String () Identity Expr
 binary s op = Infix (mplReservedOp s >> return (BinOp op))

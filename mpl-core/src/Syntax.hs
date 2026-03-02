@@ -1,10 +1,10 @@
 module Syntax where
 
-import Prims
+import Types
 
 type Id = String
 
-type Env = [(Id, Value)]
+type Env = [(Id, Expr)]
 
 data Types
     = IntT
@@ -49,7 +49,6 @@ instance Show Value where
     show (ClosureV {}) = "<closure>"
     show (DNAV dna)  = show dna
     show (RNAV rna) = show rna
-
 data Op
     = Add
     | Sub

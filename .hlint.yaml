@@ -1,0 +1,4 @@
+- arguments: [--color]
+
+- ignore: {name: "Use newtype instead of data"}
+- ignore: {name: "Redundant bracket"}

@@ -1,13 +1,17 @@
-module Eval (runEval, emptyEnv, Env) where
+module Eval (runEval, initEnv, Env) where
 
 import MPL
 import Control.Monad.Except (throwError)
 import Syntax
 import Parser
 import Control.Monad (void)
+import Prims
 
-emptyEnv :: Env
-emptyEnv = []
+initEnv :: Env
+initEnv = 
+    [ ("print", Var "print")
+    , ("read_csv", Var "read_csv")
+    ]
 
 -- type checker
 tc :: Expr -> M Types
@@ -145,17 +149,19 @@ tc (If cnd e0 e1) = do
             te1 <- tc e1
             if te0 == te1 then pure te0 else throwError $ TypeError te0 te1
         _ -> throwError $ TypeError BoolT tcnd
-tc (Var v) = lookupVar v >>= tc . Const
+tc (Var v) = lookupVar v >>= tc
 tc (Let v e0 e1) = do
     void $ tc e0
-    v0 <- eval e0
-    bindVar v v0
+    bindVar v e0
     tc e1
 tc (LetF{}) = undefined
 tc (LetR{}) = undefined
 tc (Lam _ _) = undefined
-tc (App (Var "print") _) = pure UnitT
-tc (App _ _) = undefined
+tc (App f _) = 
+    case f of
+        Var "print" -> pure UnitT
+        Var "read_csv" -> pure UnitT
+        _ -> undefined
 
 -- evaluator
 eval :: Expr -> M Value
@@ -164,7 +170,7 @@ eval (UnOp Not (Const (BoolV b))) = pure $ BoolV (not b)
 eval (UnOp Sub (Const (IntV i))) = pure $ IntV (-i)
 eval (UnOp Sub (Const (DoubleV d))) = pure $ DoubleV (-d)
 eval (UnOp op _) = throwError $ RuntimeError ("not unary operator: " ++ show op)
-eval (BinOp op e0 e1) =do
+eval (BinOp op e0 e1) = do
     (v0, v1) <- (,) <$> eval e0 <*> eval e1
     case op of
         Add -> 
@@ -260,19 +266,22 @@ eval (If cnd e0 e1) = do
         BoolV True -> eval e0
         BoolV False -> eval e1
         _ -> throwError $ RuntimeError "if expects bool"
-eval (Var v) = lookupVar v
+eval (Var v) = lookupVar v >>= eval
 eval (Let v e0 e1) = do
-    v0 <- eval e0
-    bindVar v v0
+    bindVar v e0
     eval e1
 eval (LetF{}) = undefined
 eval (LetR{}) = undefined
 eval (Lam _ _) = undefined
-eval (App (Var "print") e) = do
-    v <- eval e
-    io $ print v
-    pure $ UnitV ()
-eval (App _ _) = undefined
+eval (App f e) = do
+    case f of
+        Var v -> do
+            expr <- lookupVar v
+            case expr of
+                Var "print" -> applyPrint e
+                Var "read_csv" -> applyReadCsv e
+                _ -> undefined
+        _ -> undefined
 
 runEval :: Env -> String -> IO (Either Error (Value, Types), Env)
 runEval env str = case parser str of
