@@ -144,7 +144,7 @@ tc (If cnd e0 e1) = do
             te1 <- tc e1
             if te0 == te1 then pure te0 else throwError $ TypeError te0 te1
         _ -> throwError $ TypeError BoolT tcnd
-tc (Var _) = undefined
+tc (Var v) = lookupVar v >>= tc . Const
 tc (Let{} ) = undefined
 tc (LetF{}) = undefined
 tc (LetR{}) = undefined

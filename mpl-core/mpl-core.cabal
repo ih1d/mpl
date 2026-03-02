@@ -35,8 +35,5 @@ library
                     , parsec
                     , mtl
                     , vector
-                    , containers
-                    , bytestring
-                    , lens
     hs-source-dirs:   src
     default-language: GHC2021
