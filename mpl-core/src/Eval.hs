@@ -232,7 +232,7 @@ eval (BinOp op e0 e1) =do
                 (DoubleV d1, DoubleV d2) -> pure (BoolV (d1 > d2))
                 (DoubleV d, IntV i) -> pure (BoolV (d > fromInteger i))
                 (IntV i, DoubleV d) -> pure (BoolV (fromInteger i > d))
-                _ -> throwError $ RuntimeError "expectected numerical values for >="
+                _ -> throwError $ RuntimeError "expectected numerical values for >"
         GtEq -> 
             case (v0, v1) of
                 (IntV i1, IntV i2) -> pure (BoolV (i1 >= i2))
