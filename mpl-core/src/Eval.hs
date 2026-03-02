@@ -23,6 +23,11 @@ tc (UnOp Not (Const (BoolV _))) = pure BoolT
 tc (UnOp Not e) = do
     t <- tc e
     throwError $ TypeError BoolT t
+tc (UnOp Sub (Const (IntV _))) = pure IntT
+tc (UnOp Sub (Const (DoubleV _))) = pure DoubleT
+tc (UnOp Sub e) = do
+    t <- tc e
+    throwError $ TypeError NumT t
 tc (UnOp op _) = throwError $ RuntimeError ("operator: " ++ show op ++ " is not unary")
 tc (BinOp op e0 e1) = do
     (t0, t1) <- (,) <$> tc e0 <*> tc e1
@@ -154,6 +159,8 @@ tc (App f _) = tc f
 eval :: Expr -> M Value
 eval (Const i) = pure i
 eval (UnOp Not (Const (BoolV b))) = pure $ BoolV (not b)
+eval (UnOp Sub (Const (IntV i))) = pure $ IntV (-i)
+eval (UnOp Sub (Const (DoubleV d))) = pure $ DoubleV (-d)
 eval (UnOp op _) = throwError $ RuntimeError ("not unary operator: " ++ show op)
 eval (BinOp op e0 e1) =do
     (v0, v1) <- (,) <$> eval e0 <*> eval e1
