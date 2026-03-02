@@ -154,6 +154,7 @@ tc (Let v e0 e1) = do
 tc (LetF{}) = undefined
 tc (LetR{}) = undefined
 tc (Lam _ _) = undefined
+tc (App (Var "print") _) = pure UnitT
 tc (App _ _) = undefined
 
 -- evaluator
@@ -267,6 +268,10 @@ eval (Let v e0 e1) = do
 eval (LetF{}) = undefined
 eval (LetR{}) = undefined
 eval (Lam _ _) = undefined
+eval (App (Var "print") e) = do
+    v <- eval e
+    io $ print v
+    pure $ UnitV ()
 eval (App _ _) = undefined
 
 runEval :: Env -> String -> IO (Either Error (Value, Types), Env)
