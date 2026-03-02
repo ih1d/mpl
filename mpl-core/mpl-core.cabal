@@ -24,9 +24,9 @@ library
     default-extensions:
         OverloadedStrings
     exposed-modules:
-        Parser
         Eval
     other-modules:
+        Parser
         Syntax
         Lexer
         MPL
@@ -38,5 +38,6 @@ library
                     , containers
                     , cassava
                     , bytestring
+                    , lens
     hs-source-dirs:   src
     default-language: GHC2021

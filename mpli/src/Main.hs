@@ -4,7 +4,7 @@ import System.IO (hSetBuffering, stdout, BufferMode(NoBuffering))
 import Eval
 
 main :: IO ()
-main = hSetBuffering stdout NoBuffering >> repl initEnv
+main = hSetBuffering stdout NoBuffering >> repl emptyEnv
 
 repl :: Env -> IO ()
 repl env = do

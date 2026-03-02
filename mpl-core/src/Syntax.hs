@@ -16,7 +16,6 @@ data Types
     | DNAT
     | RNAT
     | UnitT
-    | PrimitiveT
     deriving (Eq)
 
 instance Show Types where
@@ -29,7 +28,6 @@ instance Show Types where
     show RNAT = "RNA"
     show NumT = "numerical"
     show UnitT = "()"
-    show PrimitiveT = "<primitive>"
 
 data Value
     = IntV Integer
@@ -90,7 +88,6 @@ data Expr
     = Const Value
     | UnOp Op Expr
     | BinOp Op Expr Expr
-    | Primitive Id
     | If Expr Expr Expr
     | Var Id
     | Let Id Expr Expr
@@ -110,4 +107,3 @@ instance Show Expr where
     show (LetR f args e) = "let rec " ++ f ++ " " ++ unwords args ++ " = " ++ show e
     show (Lam args e) = "lambda " ++ unwords args ++ " -> " ++ show e
     show (App e0 e1) = show e0 ++ " " ++ show e1
-    show (Primitive p) = p

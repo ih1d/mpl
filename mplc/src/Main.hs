@@ -9,7 +9,7 @@ main = do
     case args of
         [f] -> do
             contents <- readFile f
-            (mval, _) <- runEval initEnv contents
+            (mval, _) <- runEval emptyEnv contents
             case mval of
                 Left err -> print err
                 Right val -> print val

@@ -1,4 +1,4 @@
-module Eval (runEval, initEnv, Env) where
+module Eval (runEval, emptyEnv, Env) where
 
 import MPL
 import Control.Monad.Except (throwError)
@@ -6,16 +6,8 @@ import Syntax
 import Control.Monad (void)
 import Parser
 
-initEnv :: Env
-initEnv = 
-    [ ("print", Primitive "print")
-    , ("complement", Primitive "complement")
-    , ("transcribe", Primitive "transcribe")
-    , ("translate", Primitive "translate")
-    , ("reverse_complement", Primitive "reverse_complement")
-    , ("read_csv", Primitive "read_csv")
-    , ("read_fastq", Primitive "read_fastq")
-    ]
+emptyEnv :: Env
+emptyEnv = []
 
 -- type checker
 tc :: Expr -> M Types
@@ -157,8 +149,6 @@ tc (LetF _ _ e) = tc e
 tc (LetR _ _ e) = tc e
 tc (Lam _ _) = pure FunT
 tc (App f _) = tc f
-tc (Primitive _) = pure PrimitiveT
-
 
 -- evaluator
 eval :: Expr -> M Value
@@ -269,7 +259,6 @@ eval (LetF{}) = undefined
 eval (LetR{}) = undefined
 eval (Lam _ _) = undefined
 eval (App _ _) = undefined
-eval (Primitive _) = undefined
 
 runEval :: Env -> String -> IO (Either Error (Value, Types), Env)
 runEval env str = case parser str of
