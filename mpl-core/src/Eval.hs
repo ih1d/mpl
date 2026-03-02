@@ -4,6 +4,7 @@ import MPL
 import Control.Monad.Except (throwError)
 import Syntax
 import Parser
+import Control.Monad (void)
 
 emptyEnv :: Env
 emptyEnv = []
@@ -145,7 +146,11 @@ tc (If cnd e0 e1) = do
             if te0 == te1 then pure te0 else throwError $ TypeError te0 te1
         _ -> throwError $ TypeError BoolT tcnd
 tc (Var v) = lookupVar v >>= tc . Const
-tc (Let{} ) = undefined
+tc (Let v e0 e1) = do
+    void $ tc e0
+    v0 <- eval e0
+    bindVar v v0
+    tc e1
 tc (LetF{}) = undefined
 tc (LetR{}) = undefined
 tc (Lam _ _) = undefined
