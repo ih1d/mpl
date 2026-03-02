@@ -31,12 +31,10 @@ library
         Lexer
         MPL
         Prims
-        Types
+        MPLTypes
     build-depends:    base   ^>=4.18.3.0
                     , parsec
                     , mtl
                     , vector
-                    , cassava
-                    , bytestring
     hs-source-dirs:   src
     default-language: GHC2021

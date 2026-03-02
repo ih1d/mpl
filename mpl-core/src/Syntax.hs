@@ -1,6 +1,6 @@
 module Syntax where
 
-import Types
+import MPLTypes
 
 type Id = String
 
@@ -35,7 +35,7 @@ data Value
     | BoolV Bool
     | StringV String
     | UnitV ()
-    | ClosureV [Id] Env Expr
+    | ClosureV [Id] Expr
     | DNAV DNA
     | RNAV RNA
 
@@ -49,6 +49,7 @@ instance Show Value where
     show (ClosureV {}) = "<closure>"
     show (DNAV dna)  = show dna
     show (RNAV rna) = show rna
+
 data Op
     = Add
     | Sub
@@ -93,7 +94,7 @@ data Expr
     | LetF Id [Id] Expr
     | LetR Id [Id] Expr
     | Lam [Id] Expr
-    | App Expr Expr
+    | App Expr [Expr]
 
 instance Show Expr where
     show (Const v) = show v

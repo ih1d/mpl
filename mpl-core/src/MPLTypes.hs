@@ -1,6 +1,6 @@
-module Types (
+module MPLTypes (
     DNA(..), 
-    RNA(..)
+    RNA(..),
 ) where
 
 import Data.Vector (Vector, (!))

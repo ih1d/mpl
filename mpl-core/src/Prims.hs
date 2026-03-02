@@ -4,7 +4,10 @@ import Syntax
 import MPL
 import Prelude hiding (readFile)
 
-applyPrint :: Expr -> M Value
-applyPrint e = do
-    io $ print e
+applyPrint :: [Value] -> M Value
+applyPrint vals = do
+    io $ mapM_ (putStrLn . show) vals
     pure $ UnitV ()
+
+applyReadCsv :: [Value] -> M Value
+applyReadCsv = undefined

@@ -10,7 +10,7 @@ import Data.Word
 import Data.Vector (fromList)
 import Lexer
 import Syntax
-import Types
+import MPLTypes
 
 binary :: String -> Op -> Assoc -> Operator String () Identity Expr
 binary s op = Infix (mplReservedOp s >> return (BinOp op))
@@ -88,7 +88,12 @@ parseAtom :: Parser Expr
 parseAtom = mplParens parseExpr <|> try parseDouble <|> parseInt <|> parseBool <|> parseStr <|> parseDNA <|> parseRNA <|> parseVar
 
 parseApp :: Parser Expr
-parseApp = foldl1 App <$> many1 parseAtom
+parseApp = do
+    f <- parseAtom
+    args <- many parseAtom
+    pure $ case args of
+        [] -> f
+        _  -> App f args
 
 parseTerm :: Parser Expr
 parseTerm = buildExpressionParser opTable parseApp
@@ -115,7 +120,7 @@ parseLetF :: Parser Expr
 parseLetF = do
     mplReserved "let"
     f <- mplIdentifier
-    args <- many mplIdentifier
+    args <- many1 mplIdentifier
     mplReservedOp "="
     LetF f args <$> parseExpr
 
@@ -124,7 +129,7 @@ parseLetR = do
     mplReserved "let"
     mplReserved "rec"
     f <- mplIdentifier
-    args <- many mplIdentifier
+    args <- many1 mplIdentifier
     mplReservedOp "="
     LetR f args <$> parseExpr
 

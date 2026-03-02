@@ -2,13 +2,14 @@ module Eval (runEval, initEnv, Env) where
 
 import MPL
 import Control.Monad.Except (throwError)
+import Control.Monad.State (get, put)
 import Syntax
 import Parser
 import Control.Monad (void)
 import Prims
 
 initEnv :: Env
-initEnv = 
+initEnv =
     [ ("print", Var "print")
     , ("read_csv", Var "read_csv")
     ]
@@ -36,7 +37,7 @@ tc (UnOp op _) = throwError $ RuntimeError ("operator: " ++ show op ++ " is not 
 tc (BinOp op e0 e1) = do
     (t0, t1) <- (,) <$> tc e0 <*> tc e1
     case op of
-        Add -> 
+        Add ->
             case (t0, t1) of
                 (IntT, IntT) -> pure IntT
                 (DoubleT, DoubleT) -> pure DoubleT
@@ -45,7 +46,7 @@ tc (BinOp op e0 e1) = do
                 (t, IntT) -> throwError $ TypeError NumT t
                 (t, DoubleT) -> throwError $ TypeError NumT t
                 (t, _) -> throwError $ TypeError NumT t
-        Sub -> 
+        Sub ->
             case (t0, t1) of
                 (IntT, IntT) -> pure IntT
                 (DoubleT, DoubleT) -> pure DoubleT
@@ -54,7 +55,7 @@ tc (BinOp op e0 e1) = do
                 (t, IntT) -> throwError $ TypeError NumT t
                 (t, DoubleT) -> throwError $ TypeError NumT t
                 (t, _) -> throwError $ TypeError NumT t
-        Mul -> 
+        Mul ->
             case (t0, t1) of
                 (IntT, IntT) -> pure IntT
                 (DoubleT, DoubleT) -> pure DoubleT
@@ -63,7 +64,7 @@ tc (BinOp op e0 e1) = do
                 (t, IntT) -> throwError $ TypeError NumT t
                 (t, DoubleT) -> throwError $ TypeError NumT t
                 (t, _) -> throwError $ TypeError NumT t
-        Div -> 
+        Div ->
             case (t0, t1) of
                 (IntT, IntT) -> pure DoubleT
                 (DoubleT, DoubleT) -> pure DoubleT
@@ -72,7 +73,7 @@ tc (BinOp op e0 e1) = do
                 (t, IntT) -> throwError $ TypeError NumT t
                 (t, DoubleT) -> throwError $ TypeError NumT t
                 (t, _) -> throwError $ TypeError NumT t
-        Pow -> 
+        Pow ->
             case (t0, t1) of
                 (IntT, IntT) -> pure IntT
                 (DoubleT, DoubleT) -> pure DoubleT
@@ -83,19 +84,19 @@ tc (BinOp op e0 e1) = do
                 (t, IntT) -> throwError $ TypeError NumT t
                 (t, DoubleT) -> throwError $ TypeError NumT t
                 (t, _) -> throwError $ TypeError NumT t
-        And -> 
+        And ->
             case (t0, t1) of
                 (BoolT, BoolT) -> pure BoolT
                 (BoolT, t) -> throwError $ TypeError BoolT t
                 (t, _) -> throwError $ TypeError BoolT t
-        Or -> 
+        Or ->
             case (t0, t1) of
                 (BoolT, BoolT) -> pure BoolT
                 (BoolT, t) -> throwError $ TypeError BoolT t
                 (t, _) -> throwError $ TypeError BoolT t
         Eq -> if t0 == t1 then pure BoolT else throwError $ TypeError t0 t1
         NotEq -> if t0 == t1 then pure BoolT else throwError $ TypeError t0 t1
-        Gt -> 
+        Gt ->
             case (t0, t1) of
                 (IntT, IntT) -> pure BoolT
                 (DoubleT, DoubleT) -> pure BoolT
@@ -106,7 +107,7 @@ tc (BinOp op e0 e1) = do
                 (IntT, t) -> throwError $ TypeError NumT t
                 (DoubleT, t) -> throwError $ TypeError NumT t
                 (t, _) -> throwError $ TypeError NumT t
-        GtEq -> 
+        GtEq ->
             case (t0, t1) of
                 (IntT, IntT) -> pure BoolT
                 (DoubleT, DoubleT) -> pure BoolT
@@ -117,7 +118,7 @@ tc (BinOp op e0 e1) = do
                 (t, IntT) -> throwError $ TypeError NumT t
                 (t, DoubleT) -> throwError $ TypeError NumT t
                 (t, _) -> throwError $ TypeError NumT t
-        Lt -> 
+        Lt ->
             case (t0, t1) of
                 (IntT, IntT) -> pure BoolT
                 (DoubleT, DoubleT) -> pure BoolT
@@ -128,7 +129,7 @@ tc (BinOp op e0 e1) = do
                 (t, IntT) -> throwError $ TypeError NumT t
                 (t, DoubleT) -> throwError $ TypeError NumT t
                 (t, _) -> throwError $ TypeError NumT t
-        LtEq -> 
+        LtEq ->
             case (t0, t1) of
                 (IntT, IntT) -> pure BoolT
                 (DoubleT, DoubleT) -> pure BoolT
@@ -154,14 +155,41 @@ tc (Let v e0 e1) = do
     void $ tc e0
     bindVar v e0
     tc e1
-tc (LetF{}) = undefined
-tc (LetR{}) = undefined
-tc (Lam _ _) = undefined
-tc (App f _) = 
+tc (LetF f args body) = do
+    bindVar f (Lam args body)
+    pure FunT
+tc (LetR f args body) = do
+    bindVar f (Lam args body)
+    pure FunT
+tc (Lam _ _) = pure FunT
+tc (App f args) = do
+    mapM_ tc args
     case f of
         Var "print" -> pure UnitT
         Var "read_csv" -> pure UnitT
-        _ -> undefined
+        Lam vars body -> do
+            mapM_ (uncurry bindVar) (zip vars args)
+            tc body
+        Var v -> do
+            ft <- lookupVar v >>= tc
+            if ft == FunT
+                then pure FunT
+                else throwError $ RuntimeError (v ++ " is not a function")
+        _ -> do
+            ft <- tc f
+            if ft == FunT
+                then pure FunT
+                else throwError $ RuntimeError "application of non-function"
+
+-- apply a function with scoped parameter bindings
+applyFn :: [Id] -> Expr -> [Expr] -> M Value
+applyFn params body args = do
+    env <- get
+    vals <- mapM eval args
+    mapM_ (\(p, v) -> bindVar p (Const v)) (zip params vals)
+    result <- eval body
+    put env
+    pure result
 
 -- evaluator
 eval :: Expr -> M Value
@@ -173,21 +201,21 @@ eval (UnOp op _) = throwError $ RuntimeError ("not unary operator: " ++ show op)
 eval (BinOp op e0 e1) = do
     (v0, v1) <- (,) <$> eval e0 <*> eval e1
     case op of
-        Add -> 
+        Add ->
             case (v0, v1) of
                 (IntV i1, IntV i2) -> pure (IntV (i1 + i2))
                 (DoubleV d1, DoubleV d2) -> pure (DoubleV (d1 + d2))
                 (DoubleV d, IntV i) -> pure (DoubleV (d + fromInteger i))
                 (IntV i, DoubleV d) -> pure (DoubleV (d + fromInteger i))
                 _ -> throwError $ RuntimeError "expectected numerical values for +"
-        Sub -> 
+        Sub ->
             case (v0, v1) of
                 (IntV i1, IntV i2) -> pure (IntV (i1 - i2))
                 (DoubleV d1, DoubleV d2) -> pure (DoubleV (d1 - d2))
                 (DoubleV d, IntV i) -> pure (DoubleV (d - fromInteger i))
                 (IntV i, DoubleV d) -> pure (DoubleV (fromInteger i - d))
                 _ -> throwError $ RuntimeError "expectected numerical values for -"
-        Mul -> 
+        Mul ->
             case (v0, v1) of
                 (IntV i1, IntV i2) -> pure (IntV (i1 * i2))
                 (DoubleV d1, DoubleV d2) -> pure (DoubleV (d1 * d2))
@@ -201,14 +229,14 @@ eval (BinOp op e0 e1) = do
                 (DoubleV d, IntV i) -> pure (DoubleV (d / fromInteger i))
                 (IntV i, DoubleV d) -> pure (DoubleV (fromInteger i / d))
                 _ -> throwError $ RuntimeError "expectected numerical values for /"
-        Pow -> 
+        Pow ->
             case (v0, v1) of
                 (IntV i1, IntV i2) -> pure (IntV (i1 ^ i2))
                 (DoubleV d1, DoubleV d2) -> pure (DoubleV (d1 ** d2))
                 (DoubleV d, IntV i) -> pure (DoubleV (d ** fromInteger i))
                 (IntV i, DoubleV d) -> pure (DoubleV (fromInteger i ** d))
                 _ -> throwError $ RuntimeError "expectected numerical values for ^"
-        And -> 
+        And ->
             case (v0, v1) of
                 (BoolV b1, BoolV b2) -> pure  (BoolV (b1 && b2))
                 _ -> throwError $ RuntimeError "expected booleans for &&"
@@ -217,42 +245,42 @@ eval (BinOp op e0 e1) = do
                 (BoolV b1, BoolV b2) -> pure  (BoolV (b1 || b2))
                 _ -> throwError $ RuntimeError "expected booleans for ||"
         Not -> throwError $ RuntimeError "not is a unary operator"
-        Eq -> 
+        Eq ->
             case (v0, v1) of
                 (IntV i1, IntV i2) -> pure (BoolV (i1 == i2))
                 (DoubleV d1, DoubleV d2) -> pure (BoolV (d1 == d2))
                 (DoubleV d, IntV i) -> pure (BoolV (d == fromInteger i))
                 (IntV i, DoubleV d) -> pure (BoolV (fromInteger i == d))
                 _ -> throwError $ RuntimeError "expectected numerical values for =="
-        NotEq -> 
+        NotEq ->
             case (v0, v1) of
                 (IntV i1, IntV i2) -> pure (BoolV (i1 /= i2))
                 (DoubleV d1, DoubleV d2) -> pure (BoolV (d1 /= d2))
                 (DoubleV d, IntV i) -> pure (BoolV (d /= fromInteger i))
                 (IntV i, DoubleV d) -> pure (BoolV (fromInteger i /= d))
                 _ -> throwError $ RuntimeError "expectected numerical values for !="
-        Gt -> 
+        Gt ->
             case (v0, v1) of
                 (IntV i1, IntV i2) -> pure (BoolV (i1 > i2))
                 (DoubleV d1, DoubleV d2) -> pure (BoolV (d1 > d2))
                 (DoubleV d, IntV i) -> pure (BoolV (d > fromInteger i))
                 (IntV i, DoubleV d) -> pure (BoolV (fromInteger i > d))
                 _ -> throwError $ RuntimeError "expectected numerical values for >"
-        GtEq -> 
+        GtEq ->
             case (v0, v1) of
                 (IntV i1, IntV i2) -> pure (BoolV (i1 >= i2))
                 (DoubleV d1, DoubleV d2) -> pure (BoolV (d1 >= d2))
                 (DoubleV d, IntV i) -> pure (BoolV (d >= fromInteger i))
                 (IntV i, DoubleV d) -> pure (BoolV (fromInteger i >= d))
                 _ -> throwError $ RuntimeError "expectected numerical values for >="
-        Lt -> 
+        Lt ->
             case (v0, v1) of
                 (IntV i1, IntV i2) -> pure (BoolV (i1 < i2))
                 (DoubleV d1, DoubleV d2) -> pure (BoolV (d1 < d2))
                 (DoubleV d, IntV i) -> pure (BoolV (d < fromInteger i))
                 (IntV i, DoubleV d) -> pure (BoolV (fromInteger i < d))
                 _ -> throwError $ RuntimeError "expectected numerical values for <"
-        LtEq -> 
+        LtEq ->
             case (v0, v1) of
                 (IntV i1, IntV i2) -> pure (BoolV (i1 <= i2))
                 (DoubleV d1, DoubleV d2) -> pure (BoolV (d1 <= d2))
@@ -270,18 +298,35 @@ eval (Var v) = lookupVar v >>= eval
 eval (Let v e0 e1) = do
     bindVar v e0
     eval e1
-eval (LetF{}) = undefined
-eval (LetR{}) = undefined
-eval (Lam _ _) = undefined
-eval (App f e) = do
+eval (LetF f args body) = do
+    bindVar f (Lam args body)
+    pure $ ClosureV args body
+eval (LetR f args body) = do
+    bindVar f (Lam args body)
+    pure $ ClosureV args body
+eval (Lam args body) = pure $ ClosureV args body
+eval (App f args) = do
     case f of
+        Lam params body -> applyFn params body args
         Var v -> do
             expr <- lookupVar v
             case expr of
-                Var "print" -> applyPrint e
-                Var "read_csv" -> applyReadCsv e
-                _ -> undefined
-        _ -> undefined
+                Var "print" -> do
+                    vals <- mapM eval args
+                    applyPrint vals
+                Var "read_csv" -> do
+                    vals <- mapM eval args
+                    applyReadCsv vals
+                _ -> do
+                    fVal <- eval expr
+                    case fVal of
+                        ClosureV params body -> applyFn params body args
+                        _ -> throwError $ RuntimeError (v ++ " is not a function")
+        _ -> do
+            fVal <- eval f
+            case fVal of
+                ClosureV params body -> applyFn params body args
+                _ -> throwError $ RuntimeError "application of non-function"
 
 runEval :: Env -> String -> IO (Either Error (Value, Types), Env)
 runEval env str = case parser str of
