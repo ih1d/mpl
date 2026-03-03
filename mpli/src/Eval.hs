@@ -1,5 +1,5 @@
 module Eval (initEnv, runEval) where
-
+    
 import Control.Monad.Except (MonadError(throwError))
 import InterpM
 import Primitives
