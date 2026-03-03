@@ -24,9 +24,3 @@ To run the interpreter:
 ```sh
 cabal run mpli
 ```
-
-To run the compiler:
-
-```sh
-cabal run mplc
-```
