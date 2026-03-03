@@ -26,6 +26,7 @@ executable mpli
         InterpM
         TypeChecker
         Primitives
+        Eval
     build-depends:    base ^>=4.18.3.0
                     , mpl-core
                     , mtl
