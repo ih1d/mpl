@@ -6,6 +6,7 @@ module MPLTypes (
 import Data.Vector (Vector, (!))
 import Data.Word (Word64)
 import Data.Bits ((.&.), shiftR)
+import Prelude hiding (map)
 
 newtype DNA = DNA (Vector Word64, Int)
 instance Show DNA where
