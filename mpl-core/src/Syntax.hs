@@ -41,7 +41,7 @@ data Value
     | ClosureV [Id] Expr
     | DNAV DNA
     | RNAV RNA
-    | DataframeV Dataframe
+    | DataframeV (Dataframe Value)
 
 instance Show Value where
     show (IntV i) = show i

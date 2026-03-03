@@ -38,13 +38,7 @@ rnaChar 1 = 'C'
 rnaChar 2 = 'G'
 rnaChar _ = 'U'
 
-data Column
-    = ColInt (Vector Int)
-    | ColDouble (Vector Double)
-    | ColDNA (Vector DNA)
-    | ColRNA (Vector RNA)
-
-data Dataframe = Dataframe
-    { columns :: Map String Column
+data Dataframe a = Dataframe
+    { columns :: Map String (Vector a)
     , rows :: Int
     }
