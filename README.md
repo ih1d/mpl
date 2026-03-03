@@ -8,7 +8,6 @@ Currently all are **WIP**
 
 - [mpl-core](mpl-core) is the core language
 - [mpli](mpli) is the interpreter
-- [mplc](mplc) is the compiler
 
 ## Building & Running
 
