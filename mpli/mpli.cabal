@@ -22,7 +22,12 @@ common warnings
 executable mpli
     import:           warnings
     main-is:          Main.hs
+    other-modules:
+        InterpM
+        TypeChecker
+        Primitives
     build-depends:    base ^>=4.18.3.0
                     , mpl-core
+                    , mtl
     hs-source-dirs:   src
     default-language: GHC2021

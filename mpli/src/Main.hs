@@ -2,6 +2,7 @@ module Main where
 
 import System.IO (hSetBuffering, stdout, BufferMode(NoBuffering))
 import Eval
+import Syntax
 
 main :: IO ()
 main = hSetBuffering stdout NoBuffering >> repl initEnv

@@ -1,13 +1,13 @@
-module Prims where
+module Primitives where
 
 import Syntax
-import MPL
 import Prelude hiding (readFile)
+import InterpM
 
-applyPrint :: [Value] -> M Value
+applyPrint :: [Value] -> InterpM Value
 applyPrint vals = do
     io $ mapM_ print vals
     pure $ UnitV ()
 
-applyReadCsv :: [Value] -> M Value
+applyReadCsv :: [Value] -> InterpM Value
 applyReadCsv = undefined

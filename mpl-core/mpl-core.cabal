@@ -24,17 +24,12 @@ library
     default-extensions:
         OverloadedStrings
     exposed-modules:
-        Eval
-    other-modules:
         Parser
         Syntax
         Lexer
-        MPL
-        Prims
         MPLTypes
     build-depends:    base   ^>=4.18.3.0
                     , parsec
-                    , mtl
                     , vector
     hs-source-dirs:   src
     default-language: GHC2021

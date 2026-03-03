@@ -1,0 +1,173 @@
+module TypeChecker where
+
+import InterpM (InterpM, lookupVar, bindVar)
+import Syntax
+import Control.Monad.Except (MonadError(throwError))
+import Control.Monad (void)
+
+-- type checker
+tc :: Expr -> InterpM Types
+tc (Const (IntV _)) = pure IntT
+tc (Const (DoubleV _)) = pure DoubleT
+tc (Const (BoolV _)) = pure BoolT
+tc (Const (StringV _)) = pure StringT
+tc (Const (UnitV _)) = pure UnitT
+tc (Const (ClosureV {})) = pure FunT
+tc (Const (DNAV _)) = pure DNAT
+tc (Const (RNAV _)) = pure RNAT
+tc (UnOp Not (Const (BoolV _))) = pure BoolT
+tc (UnOp Not e) = do
+    t <- tc e
+    throwError $ TypeError BoolT t
+tc (UnOp Sub (Const (IntV _))) = pure IntT
+tc (UnOp Sub (Const (DoubleV _))) = pure DoubleT
+tc (UnOp Sub e) = do
+    t <- tc e
+    throwError $ TypeError NumT t
+tc (UnOp op _) = throwError $ RuntimeError ("operator: " ++ show op ++ " is not unary")
+tc (BinOp op e0 e1) = do
+    (t0, t1) <- (,) <$> tc e0 <*> tc e1
+    case op of
+        Add ->
+            case (t0, t1) of
+                (IntT, IntT) -> pure IntT
+                (DoubleT, DoubleT) -> pure DoubleT
+                (IntT, DoubleT) -> pure DoubleT
+                (DoubleT, IntT) -> pure DoubleT
+                (t, IntT) -> throwError $ TypeError NumT t
+                (t, DoubleT) -> throwError $ TypeError NumT t
+                (t, _) -> throwError $ TypeError NumT t
+        Sub ->
+            case (t0, t1) of
+                (IntT, IntT) -> pure IntT
+                (DoubleT, DoubleT) -> pure DoubleT
+                (IntT, DoubleT) -> pure DoubleT
+                (DoubleT, IntT) -> pure DoubleT
+                (t, IntT) -> throwError $ TypeError NumT t
+                (t, DoubleT) -> throwError $ TypeError NumT t
+                (t, _) -> throwError $ TypeError NumT t
+        Mul ->
+            case (t0, t1) of
+                (IntT, IntT) -> pure IntT
+                (DoubleT, DoubleT) -> pure DoubleT
+                (IntT, DoubleT) -> pure DoubleT
+                (DoubleT, IntT) -> pure DoubleT
+                (t, IntT) -> throwError $ TypeError NumT t
+                (t, DoubleT) -> throwError $ TypeError NumT t
+                (t, _) -> throwError $ TypeError NumT t
+        Div ->
+            case (t0, t1) of
+                (IntT, IntT) -> pure DoubleT
+                (DoubleT, DoubleT) -> pure DoubleT
+                (IntT, DoubleT) -> pure DoubleT
+                (DoubleT, IntT) -> pure DoubleT
+                (t, IntT) -> throwError $ TypeError NumT t
+                (t, DoubleT) -> throwError $ TypeError NumT t
+                (t, _) -> throwError $ TypeError NumT t
+        Pow ->
+            case (t0, t1) of
+                (IntT, IntT) -> pure IntT
+                (DoubleT, DoubleT) -> pure DoubleT
+                (IntT, DoubleT) -> pure DoubleT
+                (DoubleT, IntT) -> pure DoubleT
+                (IntT, t) -> throwError $ TypeError NumT t
+                (DoubleT, t) -> throwError $ TypeError NumT t
+                (t, IntT) -> throwError $ TypeError NumT t
+                (t, DoubleT) -> throwError $ TypeError NumT t
+                (t, _) -> throwError $ TypeError NumT t
+        And ->
+            case (t0, t1) of
+                (BoolT, BoolT) -> pure BoolT
+                (BoolT, t) -> throwError $ TypeError BoolT t
+                (t, _) -> throwError $ TypeError BoolT t
+        Or ->
+            case (t0, t1) of
+                (BoolT, BoolT) -> pure BoolT
+                (BoolT, t) -> throwError $ TypeError BoolT t
+                (t, _) -> throwError $ TypeError BoolT t
+        Eq -> if t0 == t1 then pure BoolT else throwError $ TypeError t0 t1
+        NotEq -> if t0 == t1 then pure BoolT else throwError $ TypeError t0 t1
+        Gt ->
+            case (t0, t1) of
+                (IntT, IntT) -> pure BoolT
+                (DoubleT, DoubleT) -> pure BoolT
+                (IntT, DoubleT) -> pure BoolT
+                (DoubleT, IntT) -> pure BoolT
+                (t, IntT) -> throwError $ TypeError NumT t
+                (t, DoubleT) -> throwError $ TypeError NumT t
+                (IntT, t) -> throwError $ TypeError NumT t
+                (DoubleT, t) -> throwError $ TypeError NumT t
+                (t, _) -> throwError $ TypeError NumT t
+        GtEq ->
+            case (t0, t1) of
+                (IntT, IntT) -> pure BoolT
+                (DoubleT, DoubleT) -> pure BoolT
+                (IntT, DoubleT) -> pure BoolT
+                (DoubleT, IntT) -> pure BoolT
+                (IntT, t) -> throwError $ TypeError NumT t
+                (DoubleT, t) -> throwError $ TypeError NumT t
+                (t, IntT) -> throwError $ TypeError NumT t
+                (t, DoubleT) -> throwError $ TypeError NumT t
+                (t, _) -> throwError $ TypeError NumT t
+        Lt ->
+            case (t0, t1) of
+                (IntT, IntT) -> pure BoolT
+                (DoubleT, DoubleT) -> pure BoolT
+                (IntT, DoubleT) -> pure BoolT
+                (DoubleT, IntT) -> pure BoolT
+                (IntT, t) -> throwError $ TypeError NumT t
+                (DoubleT, t) -> throwError $ TypeError NumT t
+                (t, IntT) -> throwError $ TypeError NumT t
+                (t, DoubleT) -> throwError $ TypeError NumT t
+                (t, _) -> throwError $ TypeError NumT t
+        LtEq ->
+            case (t0, t1) of
+                (IntT, IntT) -> pure BoolT
+                (DoubleT, DoubleT) -> pure BoolT
+                (IntT, DoubleT) -> pure BoolT
+                (DoubleT, IntT) -> pure BoolT
+                (IntT, t) -> throwError $ TypeError NumT t
+                (DoubleT, t) -> throwError $ TypeError NumT t
+                (t, IntT) -> throwError $ TypeError NumT t
+                (t, DoubleT) -> throwError $ TypeError NumT t
+                (t, _) -> throwError $ TypeError NumT t
+        Pipe -> undefined
+        Not -> throwError $ RuntimeError "not is an unary operator"
+tc (If cnd e0 e1) = do
+    tcnd <- tc cnd
+    case tcnd of
+        BoolT -> do
+            te0 <- tc e0
+            te1 <- tc e1
+            if te0 == te1 then pure te0 else throwError $ TypeError te0 te1
+        _ -> throwError $ TypeError BoolT tcnd
+tc (Var v) = lookupVar v >>= tc
+tc (Let v e0 e1) = do
+    void $ tc e0
+    bindVar v e0
+    tc e1
+tc (LetF f args body) = do
+    bindVar f (Lam args body)
+    pure FunT
+tc (LetR f args body) = do
+    bindVar f (Lam args body)
+    pure FunT
+tc (Lam _ _) = pure FunT
+tc (App f args) = do
+    mapM_ tc args
+    case f of
+        Var "print" -> pure UnitT
+        Var "read_csv" -> pure UnitT
+        Lam vars body -> do
+            mapM_ (uncurry bindVar) (zip vars args)
+            tc body
+        Var v -> do
+            ft <- lookupVar v >>= tc
+            if ft == FunT
+                then pure FunT
+                else throwError $ RuntimeError (v ++ " is not a function")
+        _ -> do
+            ft <- tc f
+            if ft == FunT
+                then pure FunT
+                else throwError $ RuntimeError "application of non-function"

@@ -1,6 +1,7 @@
 module Syntax where
 
 import MPLTypes
+import Text.Parsec (ParseError)
 
 type Id = String
 
@@ -107,3 +108,14 @@ instance Show Expr where
     show (LetR f args e) = "let rec " ++ f ++ " " ++ unwords args ++ " = " ++ show e
     show (Lam args e) = "lambda " ++ unwords args ++ " -> " ++ show e
     show (App e0 e1) = show e0 ++ " " ++ show e1
+
+data Error
+    = ParseE ParseError
+    | RuntimeError String
+    | TypeError Types Types
+    | Unbound Id
+instance Show Error where
+    show (ParseE pe) = show pe
+    show (TypeError t0 t1) = "expected type: " ++ show t0 ++ ", got: " ++ show t1
+    show (Unbound v) = "unbound name: " ++ v
+    show (RuntimeError msg) = msg
