@@ -1,11 +1,13 @@
 module MPLTypes (
     DNA(..), 
     RNA(..),
+    Dataframe(..),
 ) where
 
 import Data.Vector (Vector, (!))
 import Data.Word (Word64)
 import Data.Bits ((.&.), shiftR)
+import Data.Map (Map)
 
 newtype DNA = DNA (Vector Word64, Int)
 instance Show DNA where
@@ -35,3 +37,14 @@ rnaChar 0 = 'A'
 rnaChar 1 = 'C'
 rnaChar 2 = 'G'
 rnaChar _ = 'U'
+
+data Column
+    = ColInt (Vector Int)
+    | ColDouble (Vector Double)
+    | ColDNA (Vector DNA)
+    | ColRNA (Vector RNA)
+
+data Dataframe = Dataframe
+    { columns :: Map String Column
+    , rows :: Int
+    }
