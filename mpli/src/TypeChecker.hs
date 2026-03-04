@@ -158,6 +158,7 @@ tc (App f args) = do
     case f of
         Var "print" -> pure UnitT
         Var "read_csv" -> pure UnitT
+        Var "transcribe" -> pure RNAT
         Lam vars body -> do
             mapM_ (uncurry bindVar) (zip vars args)
             tc body

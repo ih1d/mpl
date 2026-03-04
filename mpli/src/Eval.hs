@@ -30,6 +30,7 @@ runEval env str = case parser str of
 initEnv :: Env
 initEnv =
     [ ("print", Var "print")
+    , ("transcribe", Var "transcribe")
     , ("read_csv", Var "read_csv")
     , ("read_fastq", Var "read_fastq")
     ]
@@ -170,6 +171,9 @@ eval (App f args) = do
                 Var "read_csv" -> do
                     vals <- mapM eval args
                     applyReadCsv vals
+                Var "transcribe" -> do
+                    vals <- mapM eval args
+                    applyTranscribe vals
                 _ -> do
                     fVal <- eval expr
                     case fVal of

@@ -39,6 +39,17 @@ data Value
     | ClosureV [Id] Expr
     | DNAV DNA
     | RNAV RNA
+    deriving (Eq)
+
+typeOf :: Value -> Types
+typeOf (IntV _) = IntT
+typeOf (DoubleV _) = DoubleT
+typeOf (BoolV _) = BoolT
+typeOf (StringV _) = StringT
+typeOf (UnitV _) = UnitT
+typeOf (ClosureV{}) = FunT
+typeOf (DNAV _) = DNAT
+typeOf (RNAV _) = RNAT
 instance Show Value where
     show (IntV i) = show i
     show (DoubleV d) = show d
@@ -66,7 +77,7 @@ data Op
     | Lt
     | LtEq
     | Pipe
-
+    deriving (Eq)
 instance Show Op where
     show Add = "+"
     show Sub = "-"
@@ -95,6 +106,7 @@ data Expr
     | LetR Id [Id] Expr
     | Lam [Id] Expr
     | App Expr [Expr]
+    deriving (Eq)
 
 instance Show Expr where
     show (Const v) = show v

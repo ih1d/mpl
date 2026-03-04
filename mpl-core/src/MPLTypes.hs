@@ -5,16 +5,15 @@ module MPLTypes (
     reverseTranscribe,
 ) where
 
-import Data.Vector (Vector, (!), toList, fromList)
-import Data.Vector qualified as V
+import Data.Vector (Vector, (!))
 import Data.Word (Word64)
 import Data.Bits ((.&.), shiftR)
 
-newtype DNA = DNA (Vector Word64, Int)
+newtype DNA = DNA (Vector Word64, Int) deriving (Eq)
 instance Show DNA where
     show (DNA (ws, len)) = showSeq dnaChar ws len
 
-newtype RNA = RNA (Vector Word64, Int)
+newtype RNA = RNA (Vector Word64, Int) deriving (Eq)
 instance Show RNA where
     show (RNA (ws, len)) = showSeq rnaChar ws len
 
@@ -31,50 +30,16 @@ dnaChar :: Word64 -> Char
 dnaChar 0 = 'A'
 dnaChar 1 = 'C'
 dnaChar 2 = 'G'
-dnaChar 3 = 'T'
-dnaChar n = error $ show n ++ " is not a DNA Value."
+dnaChar _ = 'T'
 
 rnaChar :: Word64 -> Char
 rnaChar 0 = 'A'
 rnaChar 1 = 'C'
 rnaChar 2 = 'G'
-rnaChar 3 = 'U'
-rnaChar n = error $ show n ++ " is not an RNA Value."
-
-dnaWord :: Char -> Word64
-dnaWord 'A' = 0
-dnaWord 'C' = 1
-dnaWord 'G' = 2
-dnaWord 'T' = 3
-dnaWord c = error $ c : " is not a DNA character."
-
-rnaWord :: Char -> Word64
-rnaWord 'A' = 0
-rnaWord 'C' = 1
-rnaWord 'G' = 2
-rnaWord 'U' = 3
-rnaWord c = error $ c : " is not a DNA character."
-
-dnaToString :: DNA -> String
-dnaToString (DNA (vec,_)) = toList $ V.map dnaChar vec
-
-rnaToString :: RNA -> String
-rnaToString (RNA (vec,_)) = toList $ V.map rnaChar vec
+rnaChar _ = 'U'
 
 transcribe :: DNA -> RNA
-transcribe dna@(DNA (_, l)) = 
-    let dnaString = dnaToString dna
-    in RNA (fromList $ map (rnaWord . transcribe') dnaString, l)
-    where
-        transcribe' :: Char -> Char
-        transcribe' 'T' = 'U'
-        transcribe' c = c
+transcribe (DNA (vec, len)) = RNA (vec, len)
 
 reverseTranscribe :: RNA -> DNA
-reverseTranscribe rna@(RNA (_, l)) = 
-    let rnaString = rnaToString rna
-    in DNA (fromList $ map (dnaWord . revTranscribe) rnaString, l)
-    where
-        revTranscribe :: Char -> Char
-        revTranscribe 'U' = 'T'
-        revTranscribe c = c
+reverseTranscribe (RNA (vec, len)) = DNA (vec, len)
