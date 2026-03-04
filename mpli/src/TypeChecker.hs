@@ -15,7 +15,6 @@ tc (Const (UnitV _)) = pure UnitT
 tc (Const (ClosureV {})) = pure FunT
 tc (Const (DNAV _)) = pure DNAT
 tc (Const (RNAV _)) = pure RNAT
-tc (Const (DataframeV _)) = pure DataframeT
 tc (UnOp Not (Const (BoolV _))) = pure BoolT
 tc (UnOp Not e) = do
     t <- tc e

@@ -31,6 +31,7 @@ initEnv :: Env
 initEnv =
     [ ("print", Var "print")
     , ("read_csv", Var "read_csv")
+    , ("read_fastq", Var "read_fastq")
     ]
 
 -- apply a function with scoped parameter bindings
