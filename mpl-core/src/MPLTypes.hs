@@ -2,12 +2,12 @@ module MPLTypes (
     DNA (..),
     RNA (..),
     transcribe,
+    countNucleotides,
 ) where
 
 import Data.Bits (shiftR, (.&.))
 import Data.Vector (Vector, (!))
 import Data.Word (Word64)
-import Prelude hiding (lookup)
 
 newtype DNA = DNA (Vector Word64, Int) deriving (Eq)
 instance Show DNA where
@@ -24,7 +24,10 @@ showSeq decode v = go 0
     go idx remaining =
         let w = v ! idx
             n = min 32 remaining
-         in [decode ((w `shiftR` (2 * (n - 1 - i))) .&. 3) | i <- [0 .. n - 1]] ++ go (idx + 1) (remaining - n)
+         in [decode (nucleotideAt w n i) | i <- [0 .. n - 1]] ++ go (idx + 1) (remaining - n)
+
+nucleotideAt :: Word64 -> Int -> Int -> Word64
+nucleotideAt w n i = (w `shiftR` (2 * (n - 1 - i))) .&. 3
 
 dnaChar :: Word64 -> Char
 dnaChar 0 = 'A'
@@ -41,5 +44,17 @@ rnaChar _ = 'U'
 transcribe :: DNA -> RNA
 transcribe (DNA (vec, len)) = RNA (vec, len)
 
-countNucleotides :: DNA -> (Int, Int, Int, Int)
-countNucleotides _ = undefined
+countNucleotides :: DNA -> (Integer, Integer, Integer, Integer)
+countNucleotides (DNA (v, len)) = go 0 len (0, 0, 0, 0)
+  where
+    go _ 0 acc = acc
+    go idx remaining (a, c, g, t) =
+        let w = v ! idx
+            n = min 32 remaining
+            acc' = foldl (count w n) (a, c, g, t) [0 .. n - 1]
+         in go (idx + 1) (remaining - n) acc'
+    count w n (a, c, g, t) i = case nucleotideAt w n i of
+        0 -> (a + 1, c, g, t)
+        1 -> (a, c + 1, g, t)
+        2 -> (a, c, g + 1, t)
+        _ -> (a, c, g, t + 1)

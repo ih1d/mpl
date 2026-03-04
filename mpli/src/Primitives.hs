@@ -2,7 +2,7 @@ module Primitives where
 
 import Control.Monad.Except (throwError)
 import InterpM
-import MPLTypes (transcribe)
+import MPLTypes (countNucleotides, transcribe)
 import Syntax
 import Prelude hiding (readFile)
 
@@ -17,6 +17,13 @@ applyTranscribe ((DNAV dna) : _) = do
     pure $ RNAV rna
 applyTranscribe (v : _) = throwError $ TypeError DNAT (typeOf v)
 applyTranscribe [] = throwError $ RuntimeError "transcribe expects 1 argument"
+
+applyCountNucleotides :: [Value] -> InterpM Value
+applyCountNucleotides ((DNAV dna) : _) = do
+    let (a, g, c, t) = countNucleotides dna
+    pure $ Tuple [IntV a, IntV g, IntV c, IntV t]
+applyCountNucleotides (v : _) = throwError $ TypeError DNAT (typeOf v)
+applyCountNucleotides [] = throwError $ RuntimeError "count_nucleotides expects 1 argument"
 
 applyReadCsv :: [Value] -> InterpM Value
 applyReadCsv = undefined

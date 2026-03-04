@@ -1,8 +1,8 @@
 module Syntax where
 
+import Data.List (intercalate)
 import MPLTypes
 import Text.Parsec (ParseError)
-import Data.List (intercalate)
 
 type Id = String
 

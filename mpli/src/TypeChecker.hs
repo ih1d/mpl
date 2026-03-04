@@ -164,6 +164,7 @@ tc (App f args) = do
         Var "print" -> pure UnitT
         Var "read_csv" -> pure UnitT
         Var "transcribe" -> pure RNAT
+        Var "count_nucleotides" -> pure $ TupleT [IntT]
         Lam vars body -> do
             mapM_ (uncurry bindVar) (zip vars args)
             tc body

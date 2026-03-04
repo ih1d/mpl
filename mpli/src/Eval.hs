@@ -183,6 +183,9 @@ eval (App f args) = do
                 Var "transcribe" -> do
                     vals <- mapM eval args
                     applyTranscribe vals
+                Var "count_nucleotides" -> do
+                    vals <- mapM eval args
+                    applyCountNucleotides vals
                 _ -> do
                     fVal <- eval expr
                     case fVal of
