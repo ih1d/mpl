@@ -15,6 +15,7 @@ tc (Const (UnitV _)) = pure UnitT
 tc (Const (ClosureV{})) = pure FunT
 tc (Const (DNAV _)) = pure DNAT
 tc (Const (RNAV _)) = pure RNAT
+tc (Const (Tuple vs)) = pure $ TupleT (map typeOf vs)
 tc (UnOp Not (Const (BoolV _))) = pure BoolT
 tc (UnOp Not e) = do
     t <- tc e
@@ -156,6 +157,7 @@ tc (LetR f args body) = do
     bindVar f (Lam args body)
     pure FunT
 tc (Lam _ _) = pure FunT
+tc (MkTuple es) = TupleT <$> mapM tc es
 tc (App f args) = do
     mapM_ tc args
     case f of

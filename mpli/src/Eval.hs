@@ -30,6 +30,7 @@ runEval env str = case parser str of
 initEnv :: Env
 initEnv =
     [ ("print", Var "print")
+    , ("count_nucleotides", Var "count_nucleotides")
     , ("transcribe", Var "transcribe")
     , ("read_csv", Var "read_csv")
     , ("read_tsv", Var "read_tsv")
@@ -163,6 +164,7 @@ eval (LetR f args body) = do
     bindVar f (Lam args body)
     pure $ ClosureV args body
 eval (Lam args body) = pure $ ClosureV args body
+eval (MkTuple es) = Tuple <$> mapM eval es
 eval (App f args) = do
     case f of
         Lam params body -> applyFn params body args

@@ -40,3 +40,6 @@ rnaChar _ = 'U'
 
 transcribe :: DNA -> RNA
 transcribe (DNA (vec, len)) = RNA (vec, len)
+
+countNucleotides :: DNA -> (Int, Int, Int, Int)
+countNucleotides _ = undefined

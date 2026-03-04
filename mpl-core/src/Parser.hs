@@ -90,8 +90,18 @@ parseRNA = try $ do
              in w : pack rest
     return $ Const (RNAV (RNA (fromList (pack rna), len)))
 
+parseTupleOrParens :: Parser Expr
+parseTupleOrParens = do
+    _ <- mplSymbol "("
+    es <- mplCommaSep parseExpr
+    _ <- mplSymbol ")"
+    pure $ case es of
+        [] -> Const (UnitV ())
+        [e] -> e
+        _ -> MkTuple es
+
 parseAtom :: Parser Expr
-parseAtom = mplParens parseExpr <|> try parseDouble <|> parseInt <|> parseBool <|> parseStr <|> parseDNA <|> parseRNA <|> parseVar
+parseAtom = parseTupleOrParens <|> try parseDouble <|> parseInt <|> parseBool <|> parseStr <|> parseDNA <|> parseRNA <|> parseVar
 
 parseApp :: Parser Expr
 parseApp = do
