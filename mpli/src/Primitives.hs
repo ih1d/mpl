@@ -2,7 +2,7 @@ module Primitives where
 
 import Control.Monad.Except (throwError)
 import InterpM
-import MPLTypes (countNucleotides, transcribe)
+import MPLTypes 
 import Syntax
 import Prelude hiding (readFile)
 
@@ -24,6 +24,13 @@ applyCountNucleotides ((DNAV dna) : _) = do
     pure $ Tuple [IntV a, IntV g, IntV c, IntV t]
 applyCountNucleotides (v : _) = throwError $ TypeError DNAT (typeOf v)
 applyCountNucleotides [] = throwError $ RuntimeError "count_nucleotides expects 1 argument"
+
+applyReverseComplement :: [Value] -> InterpM Value
+applyReverseComplement ((DNAV dna) : _) = do
+    let dna' = reverseComplement dna
+    pure $ DNAV dna'
+applyReverseComplement (v : _) = throwError $ TypeError DNAT (typeOf v)
+applyReverseComplement [] = throwError $ RuntimeError "reverse_complement expects 1 argument"
 
 applyReadCsv :: [Value] -> InterpM Value
 applyReadCsv = undefined

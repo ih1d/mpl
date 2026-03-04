@@ -3,11 +3,13 @@ module MPLTypes (
     RNA (..),
     transcribe,
     countNucleotides,
+    reverseComplement,
 ) where
 
 import Data.Bits (shiftR, (.&.))
-import Data.Vector (Vector, (!))
+import Data.Vector (Vector, (!), reverse)
 import Data.Word (Word64)
+import Prelude hiding (reverse)
 
 newtype DNA = DNA (Vector Word64, Int) deriving (Eq)
 instance Show DNA where
@@ -58,3 +60,6 @@ countNucleotides (DNA (v, len)) = go 0 len (0, 0, 0, 0)
         1 -> (a, c + 1, g, t)
         2 -> (a, c, g + 1, t)
         _ -> (a, c, g, t + 1)
+
+reverseComplement :: DNA -> DNA
+reverseComplement (DNA (v, l)) = DNA (reverse v, l)

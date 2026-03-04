@@ -32,6 +32,7 @@ initEnv =
     [ ("print", Var "print")
     , ("count_nucleotides", Var "count_nucleotides")
     , ("transcribe", Var "transcribe")
+    , ("reverse_complement", Var "reverse_complement")
     , ("read_csv", Var "read_csv")
     , ("read_tsv", Var "read_tsv")
     , ("read_fastq", Var "read_fastq")
@@ -186,6 +187,9 @@ eval (App f args) = do
                 Var "count_nucleotides" -> do
                     vals <- mapM eval args
                     applyCountNucleotides vals
+                Var "reverse_complement" -> do
+                    vals <- mapM eval args
+                    applyReverseComplement vals
                 _ -> do
                     fVal <- eval expr
                     case fVal of
