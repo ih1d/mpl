@@ -17,6 +17,7 @@ data Types
     | DNAT
     | RNAT
     | UnitT
+    | DataframeT
     deriving (Eq)
 
 instance Show Types where
@@ -29,7 +30,7 @@ instance Show Types where
     show RNAT = "RNA"
     show NumT = "numerical"
     show UnitT = "()"
-
+    show DataframeT = "dataframe"
 data Value
     = IntV Integer
     | DoubleV Double
@@ -39,6 +40,7 @@ data Value
     | ClosureV [Id] Expr
     | DNAV DNA
     | RNAV RNA
+    | DataframeV Dataframe
     deriving (Eq)
 
 typeOf :: Value -> Types
@@ -50,6 +52,8 @@ typeOf (UnitV _) = UnitT
 typeOf (ClosureV{}) = FunT
 typeOf (DNAV _) = DNAT
 typeOf (RNAV _) = RNAT
+typeOf (DataframeV _) = DataframeT
+
 instance Show Value where
     show (IntV i) = show i
     show (DoubleV d) = show d
@@ -60,7 +64,8 @@ instance Show Value where
     show (ClosureV {}) = "<closure>"
     show (DNAV dna)  = show dna
     show (RNAV rna) = show rna
-
+    show (DataframeV df) = show df
+    
 data Op
     = Add
     | Sub

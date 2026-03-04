@@ -15,6 +15,7 @@ tc (Const (UnitV _)) = pure UnitT
 tc (Const (ClosureV {})) = pure FunT
 tc (Const (DNAV _)) = pure DNAT
 tc (Const (RNAV _)) = pure RNAT
+tc (Const (DataframeV _)) = pure DataframeT
 tc (UnOp Not (Const (BoolV _))) = pure BoolT
 tc (UnOp Not e) = do
     t <- tc e
@@ -158,6 +159,7 @@ tc (App f args) = do
     case f of
         Var "print" -> pure UnitT
         Var "read_csv" -> pure UnitT
+        Var "read_tsv" -> pure DataframeT
         Var "transcribe" -> pure RNAT
         Lam vars body -> do
             mapM_ (uncurry bindVar) (zip vars args)

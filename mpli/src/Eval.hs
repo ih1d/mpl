@@ -32,6 +32,7 @@ initEnv =
     [ ("print", Var "print")
     , ("transcribe", Var "transcribe")
     , ("read_csv", Var "read_csv")
+    , ("read_tsv", Var "read_tsv")
     , ("read_fastq", Var "read_fastq")
     ]
 
@@ -171,6 +172,9 @@ eval (App f args) = do
                 Var "read_csv" -> do
                     vals <- mapM eval args
                     applyReadCsv vals
+                Var "read_tsv" -> do
+                    vals <- mapM eval args
+                    applyReadTsv vals
                 Var "transcribe" -> do
                     vals <- mapM eval args
                     applyTranscribe vals
