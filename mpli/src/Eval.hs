@@ -1,12 +1,12 @@
 module Eval (initEnv, runEval) where
-    
-import Control.Monad.Except (MonadError(throwError))
+
+import Control.Monad.Except (MonadError (throwError))
+import Control.Monad.State
 import InterpM
+import Parser
 import Primitives
 import Syntax
-import Parser
 import TypeChecker
-import Control.Monad.State
 
 runEval :: Env -> String -> IO (Either Error (Value, Types), Env)
 runEval env str = case parser str of
@@ -93,11 +93,11 @@ eval (BinOp op e0 e1) = do
                 _ -> throwError $ RuntimeError "expectected numerical values for ^"
         And ->
             case (v0, v1) of
-                (BoolV b1, BoolV b2) -> pure  (BoolV (b1 && b2))
+                (BoolV b1, BoolV b2) -> pure (BoolV (b1 && b2))
                 _ -> throwError $ RuntimeError "expected booleans for &&"
         Or ->
             case (v0, v1) of
-                (BoolV b1, BoolV b2) -> pure  (BoolV (b1 || b2))
+                (BoolV b1, BoolV b2) -> pure (BoolV (b1 || b2))
                 _ -> throwError $ RuntimeError "expected booleans for ||"
         Not -> throwError $ RuntimeError "not is a unary operator"
         Eq ->
@@ -150,7 +150,10 @@ eval (If cnd e0 e1) = do
         BoolV False -> eval e1
         _ -> throwError $ RuntimeError "if expects bool"
 eval (Var v) = lookupVar v >>= eval
-eval (Let v e0 e1) = do
+eval (Let v e) = do
+    bindVar v e
+    eval e
+eval (LetI v e0 e1) = do
     bindVar v e0
     eval e1
 eval (LetF f args body) = do

@@ -17,7 +17,6 @@ data Types
     | DNAT
     | RNAT
     | UnitT
-    | DataframeT
     deriving (Eq)
 
 instance Show Types where
@@ -30,7 +29,7 @@ instance Show Types where
     show RNAT = "RNA"
     show NumT = "numerical"
     show UnitT = "()"
-    show DataframeT = "dataframe"
+
 data Value
     = IntV Integer
     | DoubleV Double
@@ -40,7 +39,6 @@ data Value
     | ClosureV [Id] Expr
     | DNAV DNA
     | RNAV RNA
-    | DataframeV Dataframe
     deriving (Eq)
 
 typeOf :: Value -> Types
@@ -52,7 +50,6 @@ typeOf (UnitV _) = UnitT
 typeOf (ClosureV{}) = FunT
 typeOf (DNAV _) = DNAT
 typeOf (RNAV _) = RNAT
-typeOf (DataframeV _) = DataframeT
 
 instance Show Value where
     show (IntV i) = show i
@@ -61,11 +58,10 @@ instance Show Value where
     show (BoolV False) = "false"
     show (UnitV u) = show u
     show (StringV t) = t
-    show (ClosureV {}) = "<closure>"
-    show (DNAV dna)  = show dna
+    show (ClosureV{}) = "<closure>"
+    show (DNAV dna) = show dna
     show (RNAV rna) = show rna
-    show (DataframeV df) = show df
-    
+
 data Op
     = Add
     | Sub
@@ -106,7 +102,8 @@ data Expr
     | BinOp Op Expr Expr
     | If Expr Expr Expr
     | Var Id
-    | Let Id Expr Expr
+    | Let Id Expr
+    | LetI Id Expr Expr
     | LetF Id [Id] Expr
     | LetR Id [Id] Expr
     | Lam [Id] Expr
@@ -119,7 +116,8 @@ instance Show Expr where
     show (BinOp op e0 e1) = show e0 ++ " " ++ show op ++ " " ++ show e1
     show (If cnd e0 e1) = "if " ++ show cnd ++ " then " ++ show e0 ++ " else " ++ show e1
     show (Var v) = v
-    show (Let v e0 e1) = "let " ++ v ++ " = " ++ show e0 ++ " in " ++ show e1
+    show (Let v e) = "let " ++ v ++ " = " ++ show e
+    show (LetI v e0 e1) = "let " ++ v ++ " = " ++ show e0 ++ " in " ++ show e1
     show (LetF f args e) = "let " ++ f ++ " " ++ unwords args ++ " = " ++ show e
     show (LetR f args e) = "let rec " ++ f ++ " " ++ unwords args ++ " = " ++ show e
     show (Lam args e) = "lambda " ++ unwords args ++ " -> " ++ show e

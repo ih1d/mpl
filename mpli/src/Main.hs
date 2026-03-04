@@ -1,8 +1,8 @@
 module Main where
 
-import System.IO (hSetBuffering, stdout, BufferMode(NoBuffering))
 import Eval
 import Syntax
+import System.IO (BufferMode (NoBuffering), hSetBuffering, stdout)
 
 main :: IO ()
 main = hSetBuffering stdout NoBuffering >> repl initEnv

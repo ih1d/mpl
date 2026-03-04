@@ -1,29 +1,30 @@
 module Lexer where
 
-import Text.Parsec.String (Parser)
 import Text.Parsec
+import Text.Parsec.String (Parser)
 import Text.Parsec.Token
 
 mpl :: TokenParser ()
 mpl = makeTokenParser mplDef
 
 mplDef :: LanguageDef ()
-mplDef = LanguageDef
-    { commentStart   = "(*"
-    , commentEnd     = "*)"
-    , commentLine    = ""
-    , nestedComments = True
-    , identStart     = letter <|> char '_'
-    , identLetter    = alphaNum <|> oneOf "_'"
-    , opStart        = opLetter mplDef
-    , opLetter       = oneOf ":!#$%&*+./<=>?@\\^|-~"
-    , reservedOpNames= ops
-    , reservedNames  = names
-    , caseSensitive  = True
-    }
-    where
-        ops = ["+", "-", "*", "/", "^", "=", "==", "!=", "<", ">", "<=", ">=", "&&", "||", "|>", "->"]
-        names = ["use", "let", "in", "not", "if", "then", "else", "true", "false", "rec", "lambda"]
+mplDef =
+    LanguageDef
+        { commentStart = "(*"
+        , commentEnd = "*)"
+        , commentLine = ""
+        , nestedComments = True
+        , identStart = letter <|> char '_'
+        , identLetter = alphaNum <|> oneOf "_'"
+        , opStart = opLetter mplDef
+        , opLetter = oneOf ":!#$%&*+./<=>?@\\^|-~"
+        , reservedOpNames = ops
+        , reservedNames = names
+        , caseSensitive = True
+        }
+  where
+    ops = ["+", "-", "*", "/", "^", "=", "==", "!=", "<", ">", "<=", ">=", "&&", "||", "|>", "->"]
+    names = ["use", "let", "in", "not", "if", "then", "else", "true", "false", "rec", "lambda"]
 
 mplReserved :: String -> Parser ()
 mplReserved = reserved mpl

@@ -1,16 +1,16 @@
 module Parser (parser) where
-    
+
+import Data.Bits (shiftL, (.|.))
 import Data.Functor.Identity (Identity)
+import Data.List (foldl')
+import Data.Vector (fromList)
+import Data.Word
+import Lexer
+import MPLTypes
+import Syntax
 import Text.Parsec
 import Text.Parsec.Expr
 import Text.Parsec.String (Parser)
-import Data.Bits (shiftL, (.|.))
-import Data.List (foldl')
-import Data.Word
-import Data.Vector (fromList)
-import Lexer
-import Syntax
-import MPLTypes
 
 binary :: String -> Op -> Assoc -> Operator String () Identity Expr
 binary s op = Infix (mplReservedOp s >> return (BinOp op))
@@ -23,16 +23,20 @@ prefixK s op = Prefix (mplReserved s >> return (UnOp op))
 
 opTable :: OperatorTable String () Identity Expr
 opTable =
-    [ [ prefix "-" Sub, prefixK "not" Not ]
-    , [ binary "^"  Pow  AssocRight ]
-    , [ binary "*"  Mul  AssocLeft, binary "/"  Div AssocLeft ]
-    , [ binary "+"  Add  AssocLeft, binary "-"  Sub AssocLeft ]
-    , [ binary "<"  Lt   AssocNone, binary ">"  Gt    AssocNone
-      , binary "<=" LtEq AssocNone, binary ">=" GtEq  AssocNone ]
-    , [ binary "==" Eq   AssocNone, binary "!=" NotEq AssocNone ]
-    , [ binary "&&" And  AssocLeft ]
-    , [ binary "||" Or   AssocLeft ]
-    , [ binary "|>" Pipe AssocLeft ]
+    [ [prefix "-" Sub, prefixK "not" Not]
+    , [binary "^" Pow AssocRight]
+    , [binary "*" Mul AssocLeft, binary "/" Div AssocLeft]
+    , [binary "+" Add AssocLeft, binary "-" Sub AssocLeft]
+    ,
+        [ binary "<" Lt AssocNone
+        , binary ">" Gt AssocNone
+        , binary "<=" LtEq AssocNone
+        , binary ">=" GtEq AssocNone
+        ]
+    , [binary "==" Eq AssocNone, binary "!=" NotEq AssocNone]
+    , [binary "&&" And AssocLeft]
+    , [binary "||" Or AssocLeft]
+    , [binary "|>" Pipe AssocLeft]
     ]
 
 parseInt :: Parser Expr
@@ -60,11 +64,12 @@ parseDNA = try $ do
         encode 'C' = 1
         encode 'G' = 2
         encode 'T' = 3
-        encode _   = 0
+        encode _ = 0
         pack [] = []
-        pack cs = let (chunk, rest) = splitAt 32 cs
-                      w = foldl' (\acc c -> (acc `shiftL` 2) .|. encode c) 0 chunk
-                  in w : pack rest
+        pack cs =
+            let (chunk, rest) = splitAt 32 cs
+                w = foldl' (\acc c -> (acc `shiftL` 2) .|. encode c) 0 chunk
+             in w : pack rest
     return $ Const (DNAV (DNA (fromList (pack dna), len)))
 
 parseRNA :: Parser Expr
@@ -77,11 +82,12 @@ parseRNA = try $ do
         encode 'C' = 1
         encode 'G' = 2
         encode 'U' = 3
-        encode _   = 0
+        encode _ = 0
         pack [] = []
-        pack cs = let (chunk, rest) = splitAt 32 cs
-                      w = foldl' (\acc c -> (acc `shiftL` 2) .|. encode c) 0 chunk
-                  in w : pack rest
+        pack cs =
+            let (chunk, rest) = splitAt 32 cs
+                w = foldl' (\acc c -> (acc `shiftL` 2) .|. encode c) 0 chunk
+             in w : pack rest
     return $ Const (RNAV (RNA (fromList (pack rna), len)))
 
 parseAtom :: Parser Expr
@@ -93,7 +99,7 @@ parseApp = do
     args <- many parseAtom
     pure $ case args of
         [] -> f
-        _  -> App f args
+        _ -> App f args
 
 parseTerm :: Parser Expr
 parseTerm = buildExpressionParser opTable parseApp
@@ -112,9 +118,16 @@ parseLet = do
     mplReserved "let"
     v <- mplIdentifier
     mplReservedOp "="
+    Let v <$> parseExpr
+
+parseLetIn :: Parser Expr
+parseLetIn = do
+    mplReserved "let"
+    v <- mplIdentifier
+    mplReservedOp "="
     e0 <- parseExpr
     mplReserved "in"
-    Let v e0 <$> parseExpr
+    LetI v e0 <$> parseExpr
 
 parseLetF :: Parser Expr
 parseLetF = do
@@ -141,7 +154,7 @@ parseLam = do
     Lam args <$> parseExpr
 
 parseExpr :: Parser Expr
-parseExpr = try parseLetR <|> try parseLet <|> try parseLetF <|> parseLam <|> parseIf <|> parseTerm
+parseExpr = try parseLetR <|> try parseLetIn <|> try parseLetF <|> parseLet <|> parseLam <|> parseIf <|> parseTerm
 
 parser :: String -> Either ParseError Expr
 parser = parse (mplWhiteSpace *> parseExpr <* eof) "mpl"

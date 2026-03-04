@@ -33,6 +33,5 @@ library
                     , parsec
                     , vector
                     , containers
-                    , lens
     hs-source-dirs:   src
     default-language: GHC2021

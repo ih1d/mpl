@@ -1,10 +1,10 @@
 module InterpM where
 
-import Syntax
-import Control.Monad.State
 import Control.Monad.Except
+import Control.Monad.State
+import Syntax
 
-newtype InterpM a = M { unM :: ExceptT Error (StateT Env IO) a }
+newtype InterpM a = M {unM :: ExceptT Error (StateT Env IO) a}
     deriving (Functor, Applicative, Monad, MonadState Env, MonadIO, MonadError Error)
 
 runM :: InterpM a -> Env -> IO (Either Error a)
@@ -34,7 +34,7 @@ lookupVar var = do
 bindVar :: Id -> Expr -> InterpM ()
 bindVar var expr = do
     env <- getEnv
-    put ((var, expr): env)
+    put ((var, expr) : env)
 
 io :: IO a -> InterpM a
 io = liftIO

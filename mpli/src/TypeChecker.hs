@@ -1,9 +1,9 @@
 module TypeChecker where
 
-import InterpM (InterpM, lookupVar, bindVar)
-import Syntax
-import Control.Monad.Except (MonadError(throwError))
 import Control.Monad (void)
+import Control.Monad.Except (MonadError (throwError))
+import InterpM (InterpM, bindVar, lookupVar)
+import Syntax
 
 -- type checker
 tc :: Expr -> InterpM Types
@@ -12,10 +12,9 @@ tc (Const (DoubleV _)) = pure DoubleT
 tc (Const (BoolV _)) = pure BoolT
 tc (Const (StringV _)) = pure StringT
 tc (Const (UnitV _)) = pure UnitT
-tc (Const (ClosureV {})) = pure FunT
+tc (Const (ClosureV{})) = pure FunT
 tc (Const (DNAV _)) = pure DNAT
 tc (Const (RNAV _)) = pure RNAT
-tc (Const (DataframeV _)) = pure DataframeT
 tc (UnOp Not (Const (BoolV _))) = pure BoolT
 tc (UnOp Not e) = do
     t <- tc e
@@ -143,7 +142,10 @@ tc (If cnd e0 e1) = do
             if te0 == te1 then pure te0 else throwError $ TypeError te0 te1
         _ -> throwError $ TypeError BoolT tcnd
 tc (Var v) = lookupVar v >>= tc
-tc (Let v e0 e1) = do
+tc (Let v e) = do
+    bindVar v e
+    tc e
+tc (LetI v e0 e1) = do
     void $ tc e0
     bindVar v e0
     tc e1
@@ -159,7 +161,6 @@ tc (App f args) = do
     case f of
         Var "print" -> pure UnitT
         Var "read_csv" -> pure UnitT
-        Var "read_tsv" -> pure DataframeT
         Var "transcribe" -> pure RNAT
         Lam vars body -> do
             mapM_ (uncurry bindVar) (zip vars args)

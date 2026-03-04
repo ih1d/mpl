@@ -1,10 +1,10 @@
 module Primitives where
 
+import Control.Monad.Except (throwError)
+import InterpM
+import MPLTypes (transcribe)
 import Syntax
 import Prelude hiding (readFile)
-import InterpM
-import Control.Monad.Except (throwError)
-import MPLTypes (transcribe)
 
 applyPrint :: [Value] -> InterpM Value
 applyPrint vals = do
@@ -20,3 +20,6 @@ applyTranscribe [] = throwError $ RuntimeError "transcribe expects 1 argument"
 
 applyReadCsv :: [Value] -> InterpM Value
 applyReadCsv = undefined
+
+applyReadTsv :: [Value] -> InterpM Value
+applyReadTsv = undefined
