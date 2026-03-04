@@ -30,5 +30,7 @@ executable mpli
     build-depends:    base ^>=4.18.3.0
                     , mpl-core
                     , mtl
+                    , bytestring
+                    , cassava
     hs-source-dirs:   src
     default-language: GHC2021
