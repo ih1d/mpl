@@ -62,4 +62,7 @@ countNucleotides (DNA (v, len)) = go 0 len (0, 0, 0, 0)
         _ -> (a, c, g, t + 1)
 
 reverseComplement :: DNA -> DNA
-reverseComplement (DNA (v, l)) = DNA (reverse v, l)
+reverseComplement (DNA (v, len)) = go 0 len v
+    where
+        go _ 0 vec = DNA (vec, len)
+        go i r vec = undefined

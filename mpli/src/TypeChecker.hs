@@ -143,16 +143,23 @@ tc (If cnd e0 e1) = do
             if te0 == te1 then pure te0 else throwError $ TypeError te0 te1
         _ -> throwError $ TypeError BoolT tcnd
 tc (Var v) = lookupVar v >>= tc
-tc (Let v e) = do
-    bindVar v e
-    tc e
-tc (LetI v e0 e1) = do
-    void $ tc e0
-    bindVar v e0
-    tc e1
-tc (LetF f args body) = do
-    bindVar f (Lam args body)
-    pure FunT
+tc (Let v e) = if contains v e
+    then throwError $ NotInScope v e
+    else do
+        bindVar v e
+        tc e
+tc (LetI v e0 e1)
+    | contains v e0 = throwError $ NotInScope v e0
+    | contains v e1 = throwError $ NotInScope v e1
+    | otherwise = do
+        void $ tc e0
+        bindVar v e0
+        tc e1
+tc (LetF f args body) = if contains f body
+    then throwError $ NotInScope f body
+    else do
+        bindVar f (Lam args body)
+        pure FunT
 tc (LetR f args body) = do
     bindVar f (Lam args body)
     pure FunT
@@ -179,3 +186,17 @@ tc (App f args) = do
             if ft == FunT
                 then pure FunT
                 else throwError $ RuntimeError "application of non-function"
+
+contains :: Id -> Expr -> Bool
+contains _ (Const _) = False
+contains name (UnOp _ e) = contains name e
+contains name (BinOp _ e0 e1) = contains name e0 || contains name e1
+contains name (If cnd thn els) = contains name cnd || contains name thn || contains name els
+contains name (Var n) = name == n
+contains name (Let n e) = name == n || contains name e
+contains name (LetI n e0 e1) = name == n || contains name e0 || contains name e1
+contains name (LetF n args e) = name == n || elem name args || contains name e
+contains _ (LetR{}) = False
+contains name (Lam args e) = elem name args || contains name e
+contains name (App f args) = contains name f || any (contains name) args
+contains name (MkTuple exprs) = any (contains name) exprs

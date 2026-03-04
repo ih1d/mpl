@@ -133,6 +133,7 @@ instance Show Expr where
 
 data Error
     = ParseE ParseError
+    | NotInScope Id Expr
     | RuntimeError String
     | TypeError Types Types
     | Unbound Id
@@ -141,3 +142,4 @@ instance Show Error where
     show (TypeError t0 t1) = "expected type: " ++ show t0 ++ ", got: " ++ show t1
     show (Unbound v) = "unbound name: " ++ v
     show (RuntimeError msg) = msg
+    show (NotInScope f e) = f ++ " is not in scope in the expression: " ++ show e
