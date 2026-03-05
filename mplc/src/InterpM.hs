@@ -49,7 +49,7 @@ bindVar var expr = do
 bindType :: Id -> Types -> InterpM ()
 bindType tname ty = do
     tyEnv <- getTypeEnv
-    Env <$> getEnv <*> pure ((tname, ty): tyEnv) >>= put
-    
+    Env <$> getEnv <*> pure ((tname, ty) : tyEnv) >>= put
+
 io :: IO a -> InterpM a
 io = liftIO

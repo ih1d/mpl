@@ -16,7 +16,7 @@ tc (Const (ClosureV{})) = pure FunT
 tc (Const (DNAV _)) = pure DNAT
 tc (Const (RNAV _)) = pure RNAT
 tc (Const (TupleV vs)) = pure $ TupleT (map typeOf vs)
-tc (Const (ADTV t)) = lookupType t 
+tc (Const (ADTV t)) = lookupType t
 tc (UnOp Not (Const (BoolV _))) = pure BoolT
 tc (UnOp Not e) = do
     t <- tc e

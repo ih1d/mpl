@@ -31,7 +31,7 @@ runEvalExpr env expr = do
                 Right v -> pure (Right (v, t), env')
 
 initEnv :: [(Id, Expr)]
-initEnv = 
+initEnv =
     [ ("print", Var "print")
     , ("count_nucleotides", Var "count_nucleotides")
     , ("transcribe", Var "transcribe")
