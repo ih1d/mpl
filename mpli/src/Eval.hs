@@ -165,7 +165,7 @@ eval (LetR f args body) = do
     bindVar f (Lam args body)
     pure $ ClosureV args body
 eval (Lam args body) = pure $ ClosureV args body
-eval (MkTuple es) = Tuple <$> mapM eval es
+eval (Tuple es) = TupleV <$> mapM eval es
 eval (App f args) = do
     case f of
         Lam params body -> applyFn params body args
@@ -200,3 +200,4 @@ eval (App f args) = do
             case fVal of
                 ClosureV params body -> applyFn params body args
                 _ -> throwError $ RuntimeError "application of non-function"
+eval (Use _) = pure $ UnitV ()

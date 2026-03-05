@@ -6,10 +6,9 @@ module MPLTypes (
     reverseComplement,
 ) where
 
-import Data.Bits (shiftR, (.&.))
-import Data.Vector (Vector, (!), reverse)
+import Data.Bits (shiftL, shiftR, xor, (.&.), (.|.))
+import Data.Vector (Vector, fromList, (!))
 import Data.Word (Word64)
-import Prelude hiding (reverse)
 
 newtype DNA = DNA (Vector Word64, Int) deriving (Eq)
 instance Show DNA where
@@ -28,9 +27,6 @@ showSeq decode v = go 0
             n = min 32 remaining
          in [decode (nucleotideAt w n i) | i <- [0 .. n - 1]] ++ go (idx + 1) (remaining - n)
 
-nucleotideAt :: Word64 -> Int -> Int -> Word64
-nucleotideAt w n i = (w `shiftR` (2 * (n - 1 - i))) .&. 3
-
 dnaChar :: Word64 -> Char
 dnaChar 0 = 'A'
 dnaChar 1 = 'C'
@@ -45,6 +41,9 @@ rnaChar _ = 'U'
 
 transcribe :: DNA -> RNA
 transcribe (DNA (vec, len)) = RNA (vec, len)
+
+nucleotideAt :: Word64 -> Int -> Int -> Word64
+nucleotideAt w n i = (w `shiftR` (2 * (n - 1 - i))) .&. 3
 
 countNucleotides :: DNA -> (Integer, Integer, Integer, Integer)
 countNucleotides (DNA (v, len)) = go 0 len (0, 0, 0, 0)
@@ -62,7 +61,19 @@ countNucleotides (DNA (v, len)) = go 0 len (0, 0, 0, 0)
         _ -> (a, c, g, t + 1)
 
 reverseComplement :: DNA -> DNA
-reverseComplement (DNA (v, len)) = go 0 len v
-    where
-        go _ 0 vec = DNA (vec, len)
-        go i r vec = undefined
+reverseComplement (DNA (_, 0)) = DNA (fromList [], 0)
+reverseComplement (DNA (v, len)) = DNA (fromList (packWords revComp), len)
+  where
+    numWords = (len + 31) `div` 32
+    allNucs = concatMap extractWord [0 .. numWords - 1]
+    extractWord idx =
+        let remaining = len - idx * 32
+            n = min 32 remaining
+            w = v ! idx
+         in [nucleotideAt w n i | i <- [0 .. n - 1]]
+    revComp = map (`xor` 3) (reverse allNucs)
+    packWords [] = []
+    packWords ns =
+        let (chunk, rest) = splitAt 32 ns
+         in packWord chunk : packWords rest
+    packWord = foldl (\acc nuc -> (acc `shiftL` 2) .|. nuc) 0

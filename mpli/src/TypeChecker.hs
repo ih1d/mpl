@@ -15,7 +15,7 @@ tc (Const (UnitV _)) = pure UnitT
 tc (Const (ClosureV{})) = pure FunT
 tc (Const (DNAV _)) = pure DNAT
 tc (Const (RNAV _)) = pure RNAT
-tc (Const (Tuple vs)) = pure $ TupleT (map typeOf vs)
+tc (Const (TupleV vs)) = pure $ TupleT (map typeOf vs)
 tc (UnOp Not (Const (BoolV _))) = pure BoolT
 tc (UnOp Not e) = do
     t <- tc e
@@ -143,11 +143,12 @@ tc (If cnd e0 e1) = do
             if te0 == te1 then pure te0 else throwError $ TypeError te0 te1
         _ -> throwError $ TypeError BoolT tcnd
 tc (Var v) = lookupVar v >>= tc
-tc (Let v e) = if contains v e
-    then throwError $ NotInScope v e
-    else do
-        bindVar v e
-        tc e
+tc (Let v e) =
+    if contains v e
+        then throwError $ NotInScope v e
+        else do
+            bindVar v e
+            tc e
 tc (LetI v e0 e1)
     | contains v e0 = throwError $ NotInScope v e0
     | contains v e1 = throwError $ NotInScope v e1
@@ -155,16 +156,17 @@ tc (LetI v e0 e1)
         void $ tc e0
         bindVar v e0
         tc e1
-tc (LetF f args body) = if contains f body
-    then throwError $ NotInScope f body
-    else do
-        bindVar f (Lam args body)
-        pure FunT
+tc (LetF f args body) =
+    if contains f body
+        then throwError $ NotInScope f body
+        else do
+            bindVar f (Lam args body)
+            pure FunT
 tc (LetR f args body) = do
     bindVar f (Lam args body)
     pure FunT
 tc (Lam _ _) = pure FunT
-tc (MkTuple es) = TupleT <$> mapM tc es
+tc (Tuple es) = TupleT <$> mapM tc es
 tc (App f args) = do
     mapM_ tc args
     case f of
@@ -186,6 +188,7 @@ tc (App f args) = do
             if ft == FunT
                 then pure FunT
                 else throwError $ RuntimeError "application of non-function"
+tc (Use _) = pure UnitT
 
 contains :: Id -> Expr -> Bool
 contains _ (Const _) = False
@@ -199,4 +202,5 @@ contains name (LetF n args e) = name == n || elem name args || contains name e
 contains _ (LetR{}) = False
 contains name (Lam args e) = elem name args || contains name e
 contains name (App f args) = contains name f || any (contains name) args
-contains name (MkTuple exprs) = any (contains name) exprs
+contains name (Tuple exprs) = any (contains name) exprs
+contains _ (Use _) = False

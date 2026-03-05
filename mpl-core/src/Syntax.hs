@@ -38,7 +38,7 @@ data Value
     | DoubleV Double
     | BoolV Bool
     | StringV String
-    | Tuple [Value]
+    | TupleV [Value]
     | UnitV ()
     | ClosureV [Id] Expr
     | DNAV DNA
@@ -54,7 +54,7 @@ typeOf (UnitV _) = UnitT
 typeOf (ClosureV{}) = FunT
 typeOf (DNAV _) = DNAT
 typeOf (RNAV _) = RNAT
-typeOf (Tuple vals) = TupleT (map typeOf vals)
+typeOf (TupleV vals) = TupleT (map typeOf vals)
 
 instance Show Value where
     show (IntV i) = show i
@@ -66,7 +66,7 @@ instance Show Value where
     show (ClosureV{}) = "<closure>"
     show (DNAV dna) = show dna
     show (RNAV rna) = show rna
-    show (Tuple vals) = "(" ++ intercalate ", " (map show vals) ++ ")"
+    show (TupleV vals) = "(" ++ intercalate ", " (map show vals) ++ ")"
 
 data Op
     = Add
@@ -114,7 +114,8 @@ data Expr
     | LetR Id [Id] Expr
     | Lam [Id] Expr
     | App Expr [Expr]
-    | MkTuple [Expr]
+    | Tuple [Expr]
+    | Use Id
     deriving (Eq)
 
 instance Show Expr where
@@ -129,7 +130,8 @@ instance Show Expr where
     show (LetR f args e) = "let rec " ++ f ++ " " ++ unwords args ++ " = " ++ show e
     show (Lam args e) = "lambda " ++ unwords args ++ " -> " ++ show e
     show (App e0 e1) = show e0 ++ " " ++ show e1
-    show (MkTuple es) = "(" ++ intercalate ", " (map show es) ++ ")"
+    show (Tuple es) = "(" ++ intercalate ", " (map show es) ++ ")"
+    show (Use p) = "use " ++ p
 
 data Error
     = ParseE ParseError
@@ -143,3 +145,5 @@ instance Show Error where
     show (Unbound v) = "unbound name: " ++ v
     show (RuntimeError msg) = msg
     show (NotInScope f e) = f ++ " is not in scope in the expression: " ++ show e
+
+type Prog = ([Id], [Expr])

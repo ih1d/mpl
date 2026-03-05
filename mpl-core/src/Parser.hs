@@ -98,7 +98,7 @@ parseTupleOrParens = do
     pure $ case es of
         [] -> Const (UnitV ())
         [e] -> e
-        _ -> MkTuple es
+        _ -> Tuple es
 
 parseAtom :: Parser Expr
 parseAtom = parseTupleOrParens <|> try parseDouble <|> parseInt <|> parseBool <|> parseStr <|> parseDNA <|> parseRNA <|> parseVar
@@ -163,8 +163,13 @@ parseLam = do
     mplReservedOp "->"
     Lam args <$> parseExpr
 
+parseUse :: Parser Expr
+parseUse = do
+    mplReserved "use"
+    Use <$> mplStringLiteral
+
 parseExpr :: Parser Expr
-parseExpr = try parseLetR <|> try parseLetIn <|> try parseLetF <|> parseLet <|> parseLam <|> parseIf <|> parseTerm
+parseExpr = parseUse <|> try parseLetR <|> try parseLetIn <|> try parseLetF <|> parseLet <|> parseLam <|> parseIf <|> parseTerm
 
 parser :: String -> Either ParseError Expr
 parser = parse (mplWhiteSpace *> parseExpr <* eof) "mpl"
