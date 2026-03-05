@@ -7,7 +7,7 @@ A programming language for high performance genomics computation
 Currently all are **WIP**
 
 - [mpl-core](mpl-core) is the core language
-- [mplc](mplc) is the interpreter
+- [mplc](mplc) is the interpreter/compiler
 - [data](data) contains data file examples
 
 ## Building & Running
