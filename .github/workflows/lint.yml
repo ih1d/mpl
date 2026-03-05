@@ -18,7 +18,7 @@ jobs:
           version: "0.16.2.0"
           pattern: |
             mpl-core/src/**/*.hs
-            mpli/src/**/*.hs
+            mplc/src/**/*.hs
 
   hlint:
     name: HLint
@@ -32,5 +32,5 @@ jobs:
 
       - uses: haskell-actions/hlint-run@v2
         with:
-          path: '["mpl-core/src", "mpli/src"]'
+          path: '["mpl-core/src", "mplc/src"]'
           fail-on: warning
