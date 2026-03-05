@@ -7,7 +7,7 @@ A programming language for high performance genomics computation
 Currently all are **WIP**
 
 - [mpl-core](mpl-core) is the core language
-- [mpli](mpli) is the interpreter
+- [mplc](mplc) is the interpreter
 - [data](data) contains data file examples
 
 ## Building & Running
@@ -20,8 +20,8 @@ To build:
 cabal build all
 ```
 
-To run the interpreter:
+To run the interpreter/compiler:
 
 ```sh
-cabal run mpli
+cabal exec mplc # optional file
 ```
