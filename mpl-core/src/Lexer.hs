@@ -94,3 +94,9 @@ mplSemiSep = semiSep mpl
 
 mplSemiSep1 :: Parser a -> Parser [a]
 mplSemiSep1 = semiSep1 mpl
+
+mplBarSep :: Parser a -> Parser [a]
+mplBarSep p = p `sepBy` mplReservedOp "|"
+
+mplBarSep1 :: Parser a -> Parser [a]
+mplBarSep1 p = p `sepBy1` mplReservedOp "|"

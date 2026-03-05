@@ -184,7 +184,7 @@ tc (App f args) = do
             unless (tf == FunT) (throwError $ TypeError FunT tf)
             pure $ last targs
         e -> tc e >>= throwError . TypeError FunT
-tc (Type t) = bindType t (ADTT t) >> pure (ADTT t)
+tc (Type (t, _types)) = bindType t (ADTT t) >> pure (ADTT t)
 
 contains :: Id -> Expr -> Bool
 contains _ (Const _) = False

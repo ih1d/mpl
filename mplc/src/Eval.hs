@@ -219,4 +219,4 @@ eval (App f args) = do
             case fVal of
                 ClosureV params body -> applyFn params body args
                 _ -> throwError $ RuntimeError "application of non-function"
-eval (Type t) = pure $ ADTV t
+eval (Type (t, _types)) = pure $ ADTV t
