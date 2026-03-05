@@ -21,7 +21,7 @@ runFile f = do
     go initEnv lns
   where
     go _ [] = pure ()
-    go env (l:ls) = case parseLine l of
+    go env (l : ls) = case parseLine l of
         Left err -> print err
         Right Nothing -> go env ls
         Right (Just expr) -> do
