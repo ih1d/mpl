@@ -165,14 +165,14 @@ parseLam = do
 
 parseType :: Parser Expr
 parseType = do
-    mplReserved "type" 
+    mplReserved "type"
     t <- mplIdentifier
     tvars <- many mplIdentifier
     mplReservedOp "="
     adts <- parseAdts
     pure $ Type (t, tvars ++ adts)
-    where
-        parseAdts = mplBarSep mplIdentifier
+  where
+    parseAdts = mplBarSep mplIdentifier
 
 parseExpr :: Parser Expr
 parseExpr = parseType <|> try parseLetR <|> try parseLetIn <|> try parseLetF <|> parseLet <|> parseLam <|> parseIf <|> parseTerm
