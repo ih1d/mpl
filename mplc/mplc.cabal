@@ -1,12 +1,11 @@
 cabal-version:      3.0
-name:               mpli
+name:               mplc
 version:            0.1.0.0
-synopsis:           Interpreter for El MegaProbe Language
+synopsis:           Compiler/Interpreter for El MegaProbe Language
 author:             Isaac Hiram Lopez Diaz
 maintainer:         isaac.lopez@upr.edu
 category:           Language
 build-type:         Simple
-extra-doc-files:    README.md
 
 common warnings
     ghc-options:
@@ -19,7 +18,7 @@ common warnings
         -Wredundant-constraints
         -Wunused-packages
 
-executable mpli
+executable mplc
     import:           warnings
     main-is:          Main.hs
     other-modules:
