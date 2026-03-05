@@ -1,6 +1,6 @@
 module TypeChecker where
 
-import Control.Monad (void, unless)
+import Control.Monad (unless, void)
 import Control.Monad.Except (MonadError (throwError))
 import InterpM (InterpM, bindVar, lookupVar)
 import Syntax

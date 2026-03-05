@@ -31,7 +31,7 @@ instance Show Types where
     show RNAT = "RNA"
     show NumT = "numerical"
     show UnitT = "()"
-    show (TupleT types) = "(" ++ intercalate ", " (map show types) ++ ")" 
+    show (TupleT types) = "(" ++ intercalate ", " (map show types) ++ ")"
 
 data Value
     = IntV Integer
