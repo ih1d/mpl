@@ -31,7 +31,7 @@ instance Show Types where
     show RNAT = "RNA"
     show NumT = "numerical"
     show UnitT = "()"
-    show (TupleT types) = "(" ++ intercalate ", " (map show types) ++ ")"
+    show (TupleT types) = "(" ++ intercalate ", " (map show types) ++ ")" 
 
 data Value
     = IntV Integer
@@ -67,7 +67,6 @@ instance Show Value where
     show (DNAV dna) = show dna
     show (RNAV rna) = show rna
     show (TupleV vals) = "(" ++ intercalate ", " (map show vals) ++ ")"
-
 data Op
     = Add
     | Sub
@@ -142,5 +141,3 @@ instance Show Error where
     show (Unbound v) = "unbound name: " ++ v
     show (RuntimeError msg) = msg
     show (NotInScope f e) = f ++ " is not in scope in the expression: " ++ show e
-
-type Prog = ([Id], [Expr])

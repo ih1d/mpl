@@ -1,6 +1,6 @@
 module TypeChecker where
 
-import Control.Monad (void)
+import Control.Monad (void, unless)
 import Control.Monad.Except (MonadError (throwError))
 import InterpM (InterpM, bindVar, lookupVar)
 import Syntax
@@ -168,7 +168,7 @@ tc (LetR f args body) = do
 tc (Lam _ _) = pure FunT
 tc (Tuple es) = TupleT <$> mapM tc es
 tc (App f args) = do
-    mapM_ tc args
+    targs <- mapM tc args
     case f of
         Var "print" -> pure UnitT
         Var "read_csv" -> pure UnitT
@@ -179,15 +179,10 @@ tc (App f args) = do
             mapM_ (uncurry bindVar) (zip vars args)
             tc body
         Var v -> do
-            ft <- lookupVar v >>= tc
-            if ft == FunT
-                then pure FunT
-                else throwError $ RuntimeError (v ++ " is not a function")
-        _ -> do
-            ft <- tc f
-            if ft == FunT
-                then pure FunT
-                else throwError $ RuntimeError "application of non-function"
+            tf <- tc =<< lookupVar v
+            unless (tf == FunT) (throwError $ TypeError FunT tf)
+            pure $ last targs
+        e -> tc e >>= throwError . TypeError FunT
 
 contains :: Id -> Expr -> Bool
 contains _ (Const _) = False
