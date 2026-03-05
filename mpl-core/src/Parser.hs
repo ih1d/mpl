@@ -170,7 +170,7 @@ parseType = do
     tvars <- many mplIdentifier
     mplReservedOp "="
     adts <- parseAdts
-    pure $ Type (t, tvars ++ adts)
+    undefined
   where
     parseAdts = mplBarSep mplIdentifier
 

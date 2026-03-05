@@ -1,3 +1,3 @@
-type option a = some | none
+type option a = some a | none
 
-type Maybe a = Just | Nothing
+type Maybe a = Just a | Nothing

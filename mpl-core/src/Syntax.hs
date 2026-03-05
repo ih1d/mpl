@@ -122,7 +122,7 @@ data Expr
     | Lam [Id] Expr
     | App Expr [Expr]
     | Tuple [Expr]
-    | Type (Id, [Id])
+    | Type (Id, [Id], [[Id]])
     deriving (Eq)
 
 instance Show Expr where
@@ -138,7 +138,7 @@ instance Show Expr where
     show (Lam args e) = "lambda " ++ unwords args ++ " -> " ++ show e
     show (App e0 e1) = show e0 ++ " " ++ show e1
     show (Tuple es) = "(" ++ intercalate ", " (map show es) ++ ")"
-    show (Type (t, types)) = "type " ++ t ++ " = " ++ intercalate "| " types
+    show (Type (tname, tvars, tcons)) = "type " ++ tname ++ " " ++ unwords tvars ++ " = " ++ intercalate " | " (map unwords tcons)
 
 data Error
     = ParseE ParseError

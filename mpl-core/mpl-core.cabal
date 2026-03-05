@@ -6,7 +6,6 @@ author:             Isaac Hiram Lopez Diaz
 maintainer:         isaac.lopez@upr.edu
 category:           Language
 build-type:         Simple
-extra-doc-files:    README.md
 
 common warnings
     ghc-options:
@@ -34,5 +33,3 @@ library
                     , vector
     hs-source-dirs:   src
     default-language: GHC2021
-    pkgconfig-depends: arrow-csv
-                     , arrow-dataset
