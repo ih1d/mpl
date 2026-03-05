@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SRC_DIRS="mpl-core/src mpli/src"
+SRC_DIRS="mpl-core/src mplc/src"
 
 echo "=== Running fourmolu ==="
 fourmolu --mode inplace $SRC_DIRS
