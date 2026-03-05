@@ -1,6 +1,7 @@
 module Main where
 
 import Eval
+import Parser (parseLine)
 import Syntax
 import System.Environment (getArgs)
 import System.IO (BufferMode (NoBuffering), hSetBuffering, stdout)
@@ -9,24 +10,26 @@ main :: IO ()
 main = do
     args <- getArgs
     case args of
-        [f] -> readFile f >>= runFile
+        [f] -> runFile f
         [] -> hSetBuffering stdout NoBuffering >> repl initEnv
         _ -> putStrLn "Usage: mplc [FILE]"
 
 runFile :: FilePath -> IO ()
-runFile f = loop initEnv (lines f)
+runFile f = do
+    src <- readFile f
+    let lns = lines src
+    go initEnv lns
   where
-    loop _ [] = pure ()
-    loop env [c] = do
-        (mval, _) <- runEval env c
-        case mval of
-            Left err -> print err
-            Right (v, t) -> putStrLn (show v ++ " : " ++ show t)
-    loop env (c : cs) = do
-        (mval, env') <- runEval env c
-        case mval of
-            Left err -> print err
-            Right _ -> loop env' cs
+    go _ [] = pure ()
+    go env (l:ls) = case parseLine l of
+        Left err -> print err
+        Right Nothing -> go env ls
+        Right (Just expr) -> do
+            (mval, env') <- runEvalExpr env expr
+            case mval of
+                Left err -> print err
+                Right _ -> pure ()
+            go env' ls
 
 repl :: Env -> IO ()
 repl env = do

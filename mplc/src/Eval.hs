@@ -1,4 +1,4 @@
-module Eval (initEnv, runEval) where
+module Eval (initEnv, runEval, runEvalExpr) where
 
 import Control.Monad.Except (MonadError (throwError))
 import Control.Monad.State
@@ -13,19 +13,22 @@ runEval env str = case parser str of
     Left perr -> do
         r <- runM (throwError $ ParseE perr) env
         pure (r, env)
-    Right expr -> do
-        (mt, _) <- runMState (tc expr) env
-        case mt of
-            Left tr -> do
-                r <- runM (throwError tr) env
-                pure (r, env)
-            Right t -> do
-                (mv, env') <- runMState (eval expr) env
-                case mv of
-                    Left vr -> do
-                        r <- runM (throwError vr) env
-                        pure (r, env)
-                    Right v -> pure (Right (v, t), env')
+    Right expr -> runEvalExpr env expr
+
+runEvalExpr :: Env -> Expr -> IO (Either Error (Value, Types), Env)
+runEvalExpr env expr = do
+    (mt, _) <- runMState (tc expr) env
+    case mt of
+        Left tr -> do
+            r <- runM (throwError tr) env
+            pure (r, env)
+        Right t -> do
+            (mv, env') <- runMState (eval expr) env
+            case mv of
+                Left vr -> do
+                    r <- runM (throwError vr) env
+                    pure (r, env)
+                Right v -> pure (Right (v, t), env')
 
 initEnv :: Env
 initEnv =
@@ -200,4 +203,3 @@ eval (App f args) = do
             case fVal of
                 ClosureV params body -> applyFn params body args
                 _ -> throwError $ RuntimeError "application of non-function"
-eval (Use _) = pure $ UnitV ()

@@ -1,4 +1,4 @@
-module Parser (parser) where
+module Parser (parser, parseLine) where
 
 import Data.Bits (shiftL, (.|.))
 import Data.Functor.Identity (Identity)
@@ -55,7 +55,7 @@ parseVar :: Parser Expr
 parseVar = Var <$> mplIdentifier
 
 parseDNA :: Parser Expr
-parseDNA = try $ do
+parseDNA = try $ mplLexeme $ do
     dna <- many1 (char 'A' <|> char 'C' <|> char 'G' <|> char 'T')
     notFollowedBy (oneOf "ACGU")
     let len = length dna
@@ -73,7 +73,7 @@ parseDNA = try $ do
     return $ Const (DNAV (DNA (fromList (pack dna), len)))
 
 parseRNA :: Parser Expr
-parseRNA = try $ do
+parseRNA = try $ mplLexeme $ do
     rna <- many1 (char 'A' <|> char 'C' <|> char 'G' <|> char 'U')
     notFollowedBy (oneOf "ACGT")
     let len = length rna
@@ -163,13 +163,11 @@ parseLam = do
     mplReservedOp "->"
     Lam args <$> parseExpr
 
-parseUse :: Parser Expr
-parseUse = do
-    mplReserved "use"
-    Use <$> mplStringLiteral
-
 parseExpr :: Parser Expr
-parseExpr = parseUse <|> try parseLetR <|> try parseLetIn <|> try parseLetF <|> parseLet <|> parseLam <|> parseIf <|> parseTerm
+parseExpr = try parseLetR <|> try parseLetIn <|> try parseLetF <|> parseLet <|> parseLam <|> parseIf <|> parseTerm
 
 parser :: String -> Either ParseError Expr
 parser = parse (mplWhiteSpace *> parseExpr <* eof) "mpl"
+
+parseLine :: String -> Either ParseError (Maybe Expr)
+parseLine = parse (mplWhiteSpace *> optionMaybe parseExpr <* eof) "mpl"

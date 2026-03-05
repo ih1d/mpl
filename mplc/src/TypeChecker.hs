@@ -188,7 +188,6 @@ tc (App f args) = do
             if ft == FunT
                 then pure FunT
                 else throwError $ RuntimeError "application of non-function"
-tc (Use _) = pure UnitT
 
 contains :: Id -> Expr -> Bool
 contains _ (Const _) = False
@@ -203,4 +202,3 @@ contains _ (LetR{}) = False
 contains name (Lam args e) = elem name args || contains name e
 contains name (App f args) = contains name f || any (contains name) args
 contains name (Tuple exprs) = any (contains name) exprs
-contains _ (Use _) = False
