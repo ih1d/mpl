@@ -163,8 +163,11 @@ parseLam = do
     mplReservedOp "->"
     Lam args <$> parseExpr
 
+parseType :: Parser Expr
+parseType = mplReserved "type" >> Type <$> mplIdentifier
+
 parseExpr :: Parser Expr
-parseExpr = try parseLetR <|> try parseLetIn <|> try parseLetF <|> parseLet <|> parseLam <|> parseIf <|> parseTerm
+parseExpr = parseType <|> try parseLetR <|> try parseLetIn <|> try parseLetF <|> parseLet <|> parseLam <|> parseIf <|> parseTerm
 
 parser :: String -> Either ParseError Expr
 parser = parse (mplWhiteSpace *> parseExpr <* eof) "mpl"

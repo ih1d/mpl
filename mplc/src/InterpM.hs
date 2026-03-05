@@ -13,8 +13,11 @@ runM (M m) = evalStateT (runExceptT m)
 runMState :: InterpM a -> Env -> IO (Either Error a, Env)
 runMState (M m) = runStateT (runExceptT m)
 
-getEnv :: InterpM Env
-getEnv = get
+getEnv :: InterpM [(Id, Expr)]
+getEnv = gets bindings
+
+getTypeEnv :: InterpM [(Id, Types)]
+getTypeEnv = gets types
 
 withEnv :: Env -> InterpM a -> InterpM a
 withEnv env action = do
@@ -31,10 +34,22 @@ lookupVar var = do
         Nothing -> throwError (Unbound var)
         Just expr -> pure expr
 
+lookupType :: Id -> InterpM Types
+lookupType t = do
+    typeEnv <- getTypeEnv
+    case lookup t typeEnv of
+        Nothing -> throwError (Unbound t)
+        Just t' -> pure t'
+
 bindVar :: Id -> Expr -> InterpM ()
 bindVar var expr = do
     env <- getEnv
-    put ((var, expr) : env)
+    put . Env ((var, expr) : env) =<< getTypeEnv
 
+bindType :: Id -> Types -> InterpM ()
+bindType tname ty = do
+    tyEnv <- getTypeEnv
+    Env <$> getEnv <*> pure ((tname, ty): tyEnv) >>= put
+    
 io :: IO a -> InterpM a
 io = liftIO

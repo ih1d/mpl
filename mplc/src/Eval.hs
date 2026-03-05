@@ -1,4 +1,4 @@
-module Eval (initEnv, runEval, runEvalExpr) where
+module Eval (initialEnv, runEval, runEvalExpr) where
 
 import Control.Monad.Except (MonadError (throwError))
 import Control.Monad.State
@@ -30,8 +30,8 @@ runEvalExpr env expr = do
                     pure (r, env)
                 Right v -> pure (Right (v, t), env')
 
-initEnv :: Env
-initEnv =
+initEnv :: [(Id, Expr)]
+initEnv = 
     [ ("print", Var "print")
     , ("count_nucleotides", Var "count_nucleotides")
     , ("transcribe", Var "transcribe")
@@ -40,6 +40,22 @@ initEnv =
     , ("read_tsv", Var "read_tsv")
     , ("read_fastq", Var "read_fastq")
     ]
+
+initTypeEnv :: [(Id, Types)]
+initTypeEnv =
+    [ (show IntT, IntT)
+    , (show BoolT, BoolT)
+    , (show StringT, StringT)
+    , (show NumT, NumT)
+    , (show DoubleT, DoubleT)
+    , (show FunT, FunT)
+    , (show DNAT, DNAT)
+    , (show RNAT, RNAT)
+    , (show UnitT, UnitT)
+    ]
+
+initialEnv :: Env
+initialEnv = Env initEnv initTypeEnv
 
 -- apply a function with scoped parameter bindings
 applyFn :: [Id] -> Expr -> [Expr] -> InterpM Value
@@ -203,3 +219,4 @@ eval (App f args) = do
             case fVal of
                 ClosureV params body -> applyFn params body args
                 _ -> throwError $ RuntimeError "application of non-function"
+eval (Type t) = pure $ ADTV t

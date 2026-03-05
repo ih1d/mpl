@@ -11,14 +11,14 @@ main = do
     args <- getArgs
     case args of
         [f] -> runFile f
-        [] -> hSetBuffering stdout NoBuffering >> repl initEnv
+        [] -> hSetBuffering stdout NoBuffering >> repl initialEnv
         _ -> putStrLn "Usage: mplc [FILE]"
 
 runFile :: FilePath -> IO ()
 runFile f = do
     src <- readFile f
     let lns = lines src
-    go initEnv lns
+    go initialEnv lns
   where
     go _ [] = pure ()
     go env (l : ls) = case parseLine l of

@@ -23,8 +23,8 @@ mplDef =
         , caseSensitive = True
         }
   where
-    ops = ["+", "-", "*", "/", "^", "=", "==", "!=", "<", ">", "<=", ">=", "&&", "||", "|>", "->"]
-    names = ["use", "let", "in", "not", "if", "then", "else", "true", "false", "rec", "lambda"]
+    ops = ["+", "-", "*", "/", "^", "=", "==", "!=", "<", ">", "<=", ">=", "&&", "||", "|>", "->", "|"]
+    names = ["let", "in", "not", "if", "then", "else", "true", "false", "rec", "lambda", "type", "match", "with"]
 
 mplReserved :: String -> Parser ()
 mplReserved = reserved mpl
