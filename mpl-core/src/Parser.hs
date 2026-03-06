@@ -1,5 +1,5 @@
 module Parser (parser, parseLine) where
-
+    
 import Data.Bits (shiftL, (.|.))
 import Data.Functor.Identity (Identity)
 import Data.List (foldl')
@@ -163,6 +163,7 @@ parseLam = do
     mplReservedOp "->"
     Lam args <$> parseExpr
 
+{-
 parseType :: Parser Expr
 parseType = do
     mplReserved "type"
@@ -173,9 +174,10 @@ parseType = do
     undefined
   where
     parseAdts = mplBarSep mplIdentifier
+-}
 
 parseExpr :: Parser Expr
-parseExpr = parseType <|> try parseLetR <|> try parseLetIn <|> try parseLetF <|> parseLet <|> parseLam <|> parseIf <|> parseTerm
+parseExpr = try parseLetR <|> try parseLetIn <|> try parseLetF <|> parseLet <|> parseLam <|> parseIf <|> parseTerm
 
 parser :: String -> Either ParseError Expr
 parser = parse (mplWhiteSpace *> parseExpr <* eof) "mpl"

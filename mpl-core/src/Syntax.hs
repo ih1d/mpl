@@ -22,7 +22,6 @@ data Types
     | RNAT
     | UnitT
     | TupleT [Types]
-    | ADTT Id
     deriving (Eq)
 
 instance Show Types where
@@ -36,7 +35,6 @@ instance Show Types where
     show NumT = "numerical"
     show UnitT = "()"
     show (TupleT types) = "(" ++ intercalate ", " (map show types) ++ ")"
-    show (ADTT t) = t
 
 data Value
     = IntV Integer
@@ -48,7 +46,6 @@ data Value
     | ClosureV [Id] Expr
     | DNAV DNA
     | RNAV RNA
-    | ADTV Id
     deriving (Eq)
 
 typeOf :: Value -> Types
@@ -61,7 +58,7 @@ typeOf (ClosureV{}) = FunT
 typeOf (DNAV _) = DNAT
 typeOf (RNAV _) = RNAT
 typeOf (TupleV vals) = TupleT (map typeOf vals)
-typeOf (ADTV t) = ADTT t
+
 instance Show Value where
     show (IntV i) = show i
     show (DoubleV d) = show d
@@ -73,7 +70,6 @@ instance Show Value where
     show (DNAV dna) = show dna
     show (RNAV rna) = show rna
     show (TupleV vals) = "(" ++ intercalate ", " (map show vals) ++ ")"
-    show (ADTV t) = t
 
 data Op
     = Add
@@ -122,7 +118,6 @@ data Expr
     | Lam [Id] Expr
     | App Expr [Expr]
     | Tuple [Expr]
-    | Type (Id, [Id], [[Id]])
     deriving (Eq)
 
 instance Show Expr where
@@ -138,7 +133,6 @@ instance Show Expr where
     show (Lam args e) = "lambda " ++ unwords args ++ " -> " ++ show e
     show (App e0 e1) = show e0 ++ " " ++ show e1
     show (Tuple es) = "(" ++ intercalate ", " (map show es) ++ ")"
-    show (Type (tname, tvars, tcons)) = "type " ++ tname ++ " " ++ unwords tvars ++ " = " ++ intercalate " | " (map unwords tcons)
 
 data Error
     = ParseE ParseError
