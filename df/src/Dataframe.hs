@@ -1,4 +1,3 @@
-module Dataframe (someFunc) where
+module Dataframe where
 
-someFunc :: IO ()
-someFunc = putStrLn "someFunc"
+data Table
