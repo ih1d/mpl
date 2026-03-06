@@ -30,14 +30,9 @@ library
         Syntax
         Lexer
         MPLTypes
-        Dataframe
     build-depends:    base   ^>=4.18.3.0
                     , parsec
                     , vector
                     , freer-simple
     hs-source-dirs:   src
     default-language: GHC2021
-    pkgconfig-depends:
-        arrow-glib
-    include-dirs:     cbits
-    c-sources:        cbits/runtime.c

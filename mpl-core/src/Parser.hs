@@ -1,5 +1,5 @@
 module Parser (parser, parseLine) where
-    
+
 import Data.Bits (shiftL, (.|.))
 import Data.Functor.Identity (Identity)
 import Data.List (foldl')
