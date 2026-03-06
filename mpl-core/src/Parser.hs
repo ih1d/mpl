@@ -1,10 +1,6 @@
 module Parser (parser, parseLine) where
 
-import Data.Bits (shiftL, (.|.))
 import Data.Functor.Identity (Identity)
-import Data.List (foldl')
-import Data.Vector (fromList)
-import Data.Word
 import Lexer
 import MPLTypes
 import Syntax
@@ -58,37 +54,13 @@ parseDNA :: Parser Expr
 parseDNA = try $ mplLexeme $ do
     dna <- many1 (char 'A' <|> char 'C' <|> char 'G' <|> char 'T')
     notFollowedBy (oneOf "ACGU")
-    let len = length dna
-        encode :: Char -> Word64
-        encode 'A' = 0
-        encode 'C' = 1
-        encode 'G' = 2
-        encode 'T' = 3
-        encode _ = 0
-        pack [] = []
-        pack cs =
-            let (chunk, rest) = splitAt 32 cs
-                w = foldl' (\acc c -> (acc `shiftL` 2) .|. encode c) 0 chunk
-             in w : pack rest
-    return $ Const (DNAV (DNA (fromList (pack dna), len)))
+    return $ Const (DNAV (DNA dna))
 
 parseRNA :: Parser Expr
 parseRNA = try $ mplLexeme $ do
     rna <- many1 (char 'A' <|> char 'C' <|> char 'G' <|> char 'U')
     notFollowedBy (oneOf "ACGT")
-    let len = length rna
-        encode :: Char -> Word64
-        encode 'A' = 0
-        encode 'C' = 1
-        encode 'G' = 2
-        encode 'U' = 3
-        encode _ = 0
-        pack [] = []
-        pack cs =
-            let (chunk, rest) = splitAt 32 cs
-                w = foldl' (\acc c -> (acc `shiftL` 2) .|. encode c) 0 chunk
-             in w : pack rest
-    return $ Const (RNAV (RNA (fromList (pack rna), len)))
+    return $ Const (RNAV (RNA rna))
 
 parseTupleOrParens :: Parser Expr
 parseTupleOrParens = do
