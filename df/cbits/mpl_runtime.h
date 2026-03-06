@@ -1,5 +1,4 @@
 /* Author: Isaac H. Lopez Diaz
- * Licensed under MIT
  * Bindings to arrow-glib
 */
 

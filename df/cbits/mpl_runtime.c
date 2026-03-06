@@ -1,3 +1,7 @@
+/* Author: Isaac H. Lopez Diaz
+ * Bindings to arrow-glib
+*/
+
 #include <arrow-glib/arrow-glib.h>
 #include "mpl_runtime.h"
 #include <stdio.h>
