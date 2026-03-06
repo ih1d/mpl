@@ -121,13 +121,7 @@ eval (BinOp op e0 e1) = do
                 (BoolV b1, BoolV b2) -> pure (BoolV (b1 || b2))
                 _ -> throwError $ RuntimeError "expected booleans for ||"
         Not -> throwError $ RuntimeError "not is a unary operator"
-        Eq ->
-            case (v0, v1) of
-                (IntV i1, IntV i2) -> pure (BoolV (i1 == i2))
-                (DoubleV d1, DoubleV d2) -> pure (BoolV (d1 == d2))
-                (DoubleV d, IntV i) -> pure (BoolV (d == fromInteger i))
-                (IntV i, DoubleV d) -> pure (BoolV (fromInteger i == d))
-                _ -> throwError $ RuntimeError "expectected numerical values for =="
+        Eq -> if v0 == v1 then pure (BoolV True) else pure (BoolV False)
         NotEq ->
             case (v0, v1) of
                 (IntV i1, IntV i2) -> pure (BoolV (i1 /= i2))

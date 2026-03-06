@@ -10,6 +10,7 @@ newtype Table = Table (ForeignPtr CTable) deriving (Eq, Show)
 
 foreign import capi "mpl_runtime.h read_csv" c_read_csv :: CString -> IO (Ptr CTable)
 foreign import capi "mpl_runtime.h &free_object" c_free_object :: FunPtr (Ptr a -> IO ())
+foreign import capi "mpl_runtime.h print_table" c_print_table :: Ptr CTable -> IO ()
 
 readCsv :: FilePath -> IO Table
 readCsv f = do

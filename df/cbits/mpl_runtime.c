@@ -13,6 +13,7 @@ Table* read_csv(const char* path) {
     }
     
     CsvOptions* opts = garrow_csv_read_options_new();
+    
     CsvReader* reader = garrow_csv_reader_new(input, opts, &err);
 
     if(err) {
@@ -37,6 +38,10 @@ Table* read_csv(const char* path) {
     return table;
 }
 
+void print_table(Table* table) {
+    gint64 rows = garrow_table_get_n_rows(table);
+    guint cols = garrow_table_get_n_columns(table);
+}
 void free_error(Error* err) { g_error_free(err); }
 
 void free_object(Object* o) { g_object_unref(o); }

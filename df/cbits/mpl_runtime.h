@@ -18,7 +18,7 @@ typedef GObject                 Object;
 
 /* Function wrappers */
 Table* read_csv(const char* path);
-
+void print_table(Table* table);
 void free_error(Error* err);
 void free_object(Object* o);
 
