@@ -3,6 +3,7 @@ module Syntax where
 import Data.List (intercalate)
 import MPLTypes
 import Text.Parsec (ParseError)
+import Dataframe (Table)
 
 type Id = String
 
@@ -22,6 +23,7 @@ data Types
     | RNAT
     | UnitT
     | TupleT [Types]
+    | DataframeT
     deriving (Eq)
 
 instance Show Types where
@@ -35,7 +37,8 @@ instance Show Types where
     show NumT = "numerical"
     show UnitT = "()"
     show (TupleT types) = "(" ++ intercalate ", " (map show types) ++ ")"
-
+    show DataframeT = "dataframe"
+    
 data Value
     = IntV Integer
     | DoubleV Double
@@ -46,6 +49,7 @@ data Value
     | ClosureV [Id] Expr
     | DNAV DNA
     | RNAV RNA
+    | DataframeV Table
     deriving (Eq)
 
 typeOf :: Value -> Types
@@ -58,6 +62,7 @@ typeOf (ClosureV{}) = FunT
 typeOf (DNAV _) = DNAT
 typeOf (RNAV _) = RNAT
 typeOf (TupleV vals) = TupleT (map typeOf vals)
+typeOf (DataframeV _) = DataframeT
 
 instance Show Value where
     show (IntV i) = show i
@@ -70,6 +75,7 @@ instance Show Value where
     show (DNAV dna) = show dna
     show (RNAV rna) = show rna
     show (TupleV vals) = "(" ++ intercalate ", " (map show vals) ++ ")"
+    show (DataframeV table) = show table
 
 data Op
     = Add
@@ -88,6 +94,7 @@ data Op
     | LtEq
     | Pipe
     deriving (Eq)
+    
 instance Show Op where
     show Add = "+"
     show Sub = "-"

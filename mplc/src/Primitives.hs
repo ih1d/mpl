@@ -5,6 +5,7 @@ import InterpM
 import MPLTypes
 import Syntax
 import Prelude hiding (readFile)
+import Dataframe (readCsv)
 
 applyPrint :: [Value] -> InterpM Value
 applyPrint vals = do
@@ -33,7 +34,11 @@ applyReverseComplement (v : _) = throwError $ TypeError DNAT (typeOf v)
 applyReverseComplement [] = throwError $ RuntimeError "reverse_complement expects 1 argument"
 
 applyReadCsv :: [Value] -> InterpM Value
-applyReadCsv = undefined
+applyReadCsv ((StringV f) : _ ) = do
+    t <- io $ readCsv f
+    pure $ DataframeV t
+applyReadCsv (v : _) = throwError $ TypeError StringT (typeOf v)
+applyReadCsv [] = throwError $ RuntimeError "read_csv expects a file path"
 
 applyReadTsv :: [Value] -> InterpM Value
 applyReadTsv = undefined

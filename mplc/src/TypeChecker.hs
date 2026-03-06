@@ -16,6 +16,7 @@ tc (Const (ClosureV{})) = pure FunT
 tc (Const (DNAV _)) = pure DNAT
 tc (Const (RNAV _)) = pure RNAT
 tc (Const (TupleV vs)) = pure $ TupleT (map typeOf vs)
+tc (Const (DataframeV _)) = pure DataframeT
 tc (UnOp Not (Const (BoolV _))) = pure BoolT
 tc (UnOp Not e) = do
     t <- tc e
@@ -151,7 +152,6 @@ tc (Let v e) =
             tc e
 tc (LetI v e0 e1)
     | contains v e0 = throwError $ NotInScope v e0
-    | contains v e1 = throwError $ NotInScope v e1
     | otherwise = do
         void $ tc e0
         bindVar v e0

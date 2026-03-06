@@ -1,0 +1,1 @@
+let df = read_csv "data/GSE132465_GEO_processed_CRC_10X_cell_annotation.csv" in print df
