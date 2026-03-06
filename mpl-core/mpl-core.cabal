@@ -30,6 +30,6 @@ library
         MPLTypes
     build-depends:    base   ^>=4.18.3.0
                     , parsec
-                    , df
+                    , apache-arrow
     hs-source-dirs:   src
     default-language: GHC2021
