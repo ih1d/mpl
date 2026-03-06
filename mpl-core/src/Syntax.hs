@@ -1,9 +1,9 @@
 module Syntax where
 
 import Data.List (intercalate)
+import Dataframe (Table)
 import MPLTypes
 import Text.Parsec (ParseError)
-import Dataframe (Table)
 
 type Id = String
 
@@ -38,7 +38,7 @@ instance Show Types where
     show UnitT = "()"
     show (TupleT types) = "(" ++ intercalate ", " (map show types) ++ ")"
     show DataframeT = "dataframe"
-    
+
 data Value
     = IntV Integer
     | DoubleV Double
@@ -94,7 +94,7 @@ data Op
     | LtEq
     | Pipe
     deriving (Eq)
-    
+
 instance Show Op where
     show Add = "+"
     show Sub = "-"

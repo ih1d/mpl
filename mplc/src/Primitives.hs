@@ -1,11 +1,11 @@
 module Primitives where
 
 import Control.Monad.Except (throwError)
+import Dataframe (readCsv)
 import InterpM
 import MPLTypes
 import Syntax
 import Prelude hiding (readFile)
-import Dataframe (readCsv)
 
 applyPrint :: [Value] -> InterpM Value
 applyPrint vals = do
@@ -34,7 +34,7 @@ applyReverseComplement (v : _) = throwError $ TypeError DNAT (typeOf v)
 applyReverseComplement [] = throwError $ RuntimeError "reverse_complement expects 1 argument"
 
 applyReadCsv :: [Value] -> InterpM Value
-applyReadCsv ((StringV f) : _ ) = do
+applyReadCsv ((StringV f) : _) = do
     t <- io $ readCsv f
     pure $ DataframeV t
 applyReadCsv (v : _) = throwError $ TypeError StringT (typeOf v)
