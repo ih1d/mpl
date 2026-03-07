@@ -37,8 +37,6 @@ initEnv =
     , ("transcribe", Var "transcribe")
     , ("reverse_complement", Var "reverse_complement")
     , ("read_csv", Var "read_csv")
-    , ("read_tsv", Var "read_tsv")
-    , ("read_fastq", Var "read_fastq")
     ]
 
 initTypeEnv :: [(Id, Types)]
@@ -191,9 +189,6 @@ eval (App f args) = do
                 Var "read_csv" -> do
                     vals <- mapM eval args
                     applyReadCsv vals
-                Var "read_tsv" -> do
-                    vals <- mapM eval args
-                    applyReadTsv vals
                 Var "transcribe" -> do
                     vals <- mapM eval args
                     applyTranscribe vals

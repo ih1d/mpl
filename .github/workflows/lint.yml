@@ -19,6 +19,7 @@ jobs:
           pattern: |
             mpl-core/src/**/*.hs
             mplc/src/**/*.hs
+            apache-arrow/src/**/*.hs
 
   hlint:
     name: HLint
@@ -32,5 +33,5 @@ jobs:
 
       - uses: haskell-actions/hlint-run@v2
         with:
-          path: '["mpl-core/src", "mplc/src"]'
+          path: '["mpl-core/src", "mplc/src", "apache-arrow/src"]'
           fail-on: warning

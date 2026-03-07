@@ -1,10 +1,10 @@
 module Primitives where
 
 import Control.Monad.Except (throwError)
-import Dataframe (readCsv)
 import InterpM
 import MPLTypes
 import Syntax
+import System.Arrow (readCsv)
 import Prelude hiding (readFile)
 
 applyPrint :: [Value] -> InterpM Value
@@ -39,6 +39,3 @@ applyReadCsv ((StringV f) : _) = do
     pure $ DataframeV t
 applyReadCsv (v : _) = throwError $ TypeError StringT (typeOf v)
 applyReadCsv [] = throwError $ RuntimeError "read_csv expects a file path"
-
-applyReadTsv :: [Value] -> InterpM Value
-applyReadTsv = undefined

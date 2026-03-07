@@ -24,10 +24,9 @@ library
     exposed-modules:
         System.Arrow
     build-depends:    base ^>=4.18.3.0
-                    , 
     hs-source-dirs:   src
     default-language: GHC2021
     pkgconfig-depends:
         arrow-glib
     include-dirs:     cbits
-    c-sources:        cbits/hs_apache_arrow.h
+    c-sources:        cbits/hs_apache_arrow.c
