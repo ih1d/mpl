@@ -139,38 +139,8 @@ parseLam = do
 parseExpr :: Parser Expr
 parseExpr = try parseLetR <|> try parseLetIn <|> try parseLetF <|> parseLet <|> parseLam <|> parseIf <|> parseTerm
 
-parseType :: Parser TypeInfo
-parseType = do
-    mplReserved "type"
-    tname <- mplIdentifier
-    params <- many (try paramVar)
-    mplReservedOp "="
-    frst <- conDecl tname
-    rst <- mplBarSep (try (conDecl tname))
-    let tagged = zipWith ($) (frst : rst) [0 ..]
-    pure $ TypeInfo tname params tagged
-  where
-    paramVar :: Parser Id
-    paramVar = do
-        n <- mplIdentifier
-        if isLower' n
-            then pure n
-            else unexpected "type variables are supposed to be lowercase."
-    isLower' :: String -> Bool
-    isLower' = all isLower
-    conDecl :: Id -> Parser (Int -> Constructor)
-    conDecl p = do
-        n <- mplIdentifier
-        a <- length <$> many (try mplIdentifier)
-        pure (\x -> Constructor n a x p)
-
-parseProg :: Parser Prog
-parseProg = do
-    exprs <- try (many parseExpr)
-    Prog exprs <$> try (many parseType)
-
 parser :: String -> Either ParseError Prog
-parser = parse (mplWhiteSpace *> parseProg <* eof) "mpl"
+parser = parse (mplWhiteSpace *> parseExpr <* eof) "mpl"
 
 parseLine :: String -> Either ParseError (Maybe Prog)
-parseLine = parse (mplWhiteSpace *> optionMaybe parseProg <* eof) "mpl"
+parseLine = parse (mplWhiteSpace *> optionMaybe parseExpr <* eof) "mpl"
