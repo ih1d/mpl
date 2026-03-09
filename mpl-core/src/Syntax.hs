@@ -1,5 +1,5 @@
 module Syntax where
-    
+
 import Data.List (intercalate)
 import MPLTypes
 import System.Arrow (Table)

@@ -66,3 +66,11 @@ const char* arrow_table_column_name(ArrowTable table, guint col) {
     g_object_unref(schema);
     return name;
 }
+
+char* arrow_get_cell(ArrowTable table, guint col, guint64 row) {
+    return "";
+}
+
+gint arrow_table_cell_is_null(ArrowTable table, guint col, guint64 row) {
+    return 0;
+}

@@ -1,6 +1,6 @@
 module TypeChecker where
 
-import Control.Monad (unless, void)
+import Control.Monad (void)
 import Control.Monad.Except (MonadError (throwError))
 import InterpM
 import Syntax
@@ -168,7 +168,6 @@ tc (LetR f args body) = do
 tc (Lam _ _) = pure FunT
 tc (Tuple es) = TupleT <$> mapM tc es
 tc (App f args) = do
-    targs <- mapM tc args
     case f of
         Var "print" -> pure UnitT
         Var "read_csv" -> pure UnitT
@@ -179,9 +178,8 @@ tc (App f args) = do
             mapM_ (uncurry bindVar) (zip vars args)
             tc body
         Var v -> do
-            tf <- tc =<< lookupVar v
-            unless (tf == FunT) (throwError $ TypeError FunT tf)
-            pure $ last targs
+            e <- lookupVar v
+            tc (App e args)
         e -> tc e >>= throwError . TypeError FunT
 
 contains :: Id -> Expr -> Bool
