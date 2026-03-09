@@ -136,7 +136,10 @@ parseLam = do
     mplReservedOp "->"
     Lam args <$> parseExpr
 
-parseType :: Parser Expr
+parseExpr :: Parser Expr
+parseExpr = try parseLetR <|> try parseLetIn <|> try parseLetF <|> parseLet <|> parseLam <|> parseIf <|> parseTerm
+
+parseType :: Parser TypeInfo
 parseType = do
     mplReserved "type"
     tname <- mplIdentifier
@@ -145,7 +148,7 @@ parseType = do
     frst <- conDecl tname
     rst <- mplBarSep (try (conDecl tname))
     let tagged = zipWith ($) (frst : rst) [0 ..]
-    pure $ Type (TypeInfo tname params tagged)
+    pure $ TypeInfo tname params tagged
   where
     paramVar :: Parser Id
     paramVar = do
@@ -161,11 +164,13 @@ parseType = do
         a <- length <$> many (try mplIdentifier)
         pure (\x -> Constructor n a x p)
 
-parseExpr :: Parser Expr
-parseExpr = parseType <|> try parseLetR <|> try parseLetIn <|> try parseLetF <|> parseLet <|> parseLam <|> parseIf <|> parseTerm
+parseProg :: Parser Prog
+parseProg = do
+    exprs <- try (many parseExpr)
+    Prog exprs <$> try (many parseType)
 
-parser :: String -> Either ParseError Expr
-parser = parse (mplWhiteSpace *> parseExpr <* eof) "mpl"
+parser :: String -> Either ParseError Prog
+parser = parse (mplWhiteSpace *> parseProg <* eof) "mpl"
 
-parseLine :: String -> Either ParseError (Maybe Expr)
-parseLine = parse (mplWhiteSpace *> optionMaybe parseExpr <* eof) "mpl"
+parseLine :: String -> Either ParseError (Maybe Prog)
+parseLine = parse (mplWhiteSpace *> optionMaybe parseProg <* eof) "mpl"

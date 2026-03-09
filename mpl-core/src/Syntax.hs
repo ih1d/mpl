@@ -8,7 +8,7 @@ import Text.Parsec (ParseError)
 type Id = String
 
 data Env = Env
-    { bindings :: [(Id, Expr)]
+    { variables :: [(Id, Expr)]
     , types :: [(Id, Types)]
     }
 
@@ -153,7 +153,6 @@ data Expr
     | Lam [Id] Expr
     | App Expr [Expr]
     | Tuple [Expr]
-    | Type TypeInfo
     deriving (Eq)
 
 instance Show Expr where
@@ -169,7 +168,13 @@ instance Show Expr where
     show (Lam args e) = "lambda " ++ unwords args ++ " -> " ++ show e
     show (App e0 e1) = show e0 ++ " " ++ show e1
     show (Tuple es) = "(" ++ intercalate ", " (map show es) ++ ")"
-    show (Type t) = show t
+
+data Prog = Prog
+    { exprs :: [Expr]
+    , typeDecls :: [TypeInfo]
+    }
+instance Show Prog where
+    show (Prog exprs typeDecls) = unwords (map show typeDecls) ++ unwords (map show exprs)
 
 data Error
     = ParseE ParseError
