@@ -1,6 +1,5 @@
 module Parser (parser, parseLine) where
 
-import Data.Char (isLower)
 import Data.Functor.Identity (Identity)
 import Lexer
 import MPLTypes
@@ -139,8 +138,8 @@ parseLam = do
 parseExpr :: Parser Expr
 parseExpr = try parseLetR <|> try parseLetIn <|> try parseLetF <|> parseLet <|> parseLam <|> parseIf <|> parseTerm
 
-parser :: String -> Either ParseError Prog
+parser :: String -> Either ParseError Expr
 parser = parse (mplWhiteSpace *> parseExpr <* eof) "mpl"
 
-parseLine :: String -> Either ParseError (Maybe Prog)
+parseLine :: String -> Either ParseError (Maybe Expr)
 parseLine = parse (mplWhiteSpace *> optionMaybe parseExpr <* eof) "mpl"

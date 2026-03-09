@@ -1,5 +1,5 @@
 module Syntax where
-
+    
 import Data.List (intercalate)
 import MPLTypes
 import System.Arrow (Table)
@@ -38,7 +38,6 @@ instance Show Types where
     show UnitT = "()"
     show (TupleT types) = "(" ++ intercalate ", " (map show types) ++ ")"
     show DataframeT = "dataframe"
-    show (Constructor n v _ p) = n ++ unwords (replicate v " * ") ++ " : " ++ p
 
 data Value
     = IntV Integer

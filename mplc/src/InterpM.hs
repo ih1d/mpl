@@ -14,7 +14,7 @@ runMState :: InterpM a -> Env -> IO (Either Error a, Env)
 runMState (M m) = runStateT (runExceptT m)
 
 getEnv :: InterpM [(Id, Expr)]
-getEnv = gets bindings
+getEnv = gets variables
 
 getTypeEnv :: InterpM [(Id, Types)]
 getTypeEnv = gets types
