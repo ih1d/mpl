@@ -28,9 +28,6 @@ library
         Syntax
         Lexer
         MPLTypes
-    other-modules:
-        Plan.Monad
-        Plan.Expr
     build-depends:    base   ^>=4.18.3.0
                     , parsec
                     , apache-arrow

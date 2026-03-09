@@ -17,7 +17,12 @@ tc (Const (DNAV _)) = pure DNAT
 tc (Const (RNAV _)) = pure RNAT
 tc (Const (TupleV vs)) = pure $ TupleT (map typeOf vs)
 tc (Const (DataframeV _)) = pure DataframeT
-tc (Const (ADTV t _)) = pure $ ADTT t
+tc c@(Const (ConV t _)) = do
+    bindVar t c
+    pure $ ADTT t
+tc c@(Const (ConFunV t _ _)) = do
+    bindVar t c
+    pure $ ADTT t
 tc (UnOp Not (Const (BoolV _))) = pure BoolT
 tc (UnOp Not e) = do
     t <- tc e
@@ -184,7 +189,12 @@ tc (App f args) = do
             unless (tf == FunT) (throwError $ TypeError FunT tf)
             pure $ last targs
         e -> tc e >>= throwError . TypeError FunT
-tc (Type _t _vars _constrs) = undefined
+tc (Type (TypeInfo t _ [])) = do
+    bindType t (ADTT t)
+    pure $ ADTT t
+tc (Type (TypeInfo t args (Constructor n _ _ _ : cs))) = do
+    bindType n (ADTT t)
+    tc (Type (TypeInfo t args cs))
 
 contains :: Id -> Expr -> Bool
 contains _ (Const _) = False

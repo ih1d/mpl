@@ -1,5 +1,6 @@
 module Parser (parser, parseLine) where
 
+import Data.Char (isLower)
 import Data.Functor.Identity (Identity)
 import Lexer
 import MPLTypes
@@ -138,12 +139,27 @@ parseLam = do
 parseType :: Parser Expr
 parseType = do
     mplReserved "type"
-    t <- mplIdentifier
-    tvars <- many mplIdentifier
+    tname <- mplIdentifier
+    params <- many (try paramVar)
     mplReservedOp "="
-    Type t tvars <$> mplBarSep parseAdts
+    frst <- conDecl tname
+    rst <- mplBarSep (try (conDecl tname))
+    let tagged = zipWith ($) (frst : rst) [0 ..]
+    pure $ Type (TypeInfo tname params tagged)
   where
-    parseAdts = (Mult <$> many1 mplIdentifier) <|> (Single <$> mplIdentifier)
+    paramVar :: Parser Id
+    paramVar = do
+        n <- mplIdentifier
+        if isLower' n
+            then pure n
+            else unexpected "type variables are supposed to be lowercase."
+    isLower' :: String -> Bool
+    isLower' = all isLower
+    conDecl :: Id -> Parser (Int -> Constructor)
+    conDecl p = do
+        n <- mplIdentifier
+        a <- length <$> many (try mplIdentifier)
+        pure (\x -> Constructor n a x p)
 
 parseExpr :: Parser Expr
 parseExpr = parseType <|> try parseLetR <|> try parseLetIn <|> try parseLetF <|> parseLet <|> parseLam <|> parseIf <|> parseTerm
