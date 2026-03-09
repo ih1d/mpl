@@ -135,21 +135,18 @@ parseLam = do
     mplReservedOp "->"
     Lam args <$> parseExpr
 
-{-
 parseType :: Parser Expr
 parseType = do
     mplReserved "type"
     t <- mplIdentifier
     tvars <- many mplIdentifier
     mplReservedOp "="
-    adts <- parseAdts
-    undefined
+    Type t tvars <$> mplBarSep parseAdts
   where
-    parseAdts = mplBarSep mplIdentifier
--}
+    parseAdts = (Mult <$> many1 mplIdentifier) <|> (Single <$> mplIdentifier)
 
 parseExpr :: Parser Expr
-parseExpr = try parseLetR <|> try parseLetIn <|> try parseLetF <|> parseLet <|> parseLam <|> parseIf <|> parseTerm
+parseExpr = parseType <|> try parseLetR <|> try parseLetIn <|> try parseLetF <|> parseLet <|> parseLam <|> parseIf <|> parseTerm
 
 parser :: String -> Either ParseError Expr
 parser = parse (mplWhiteSpace *> parseExpr <* eof) "mpl"
