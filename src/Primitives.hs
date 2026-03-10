@@ -5,11 +5,22 @@ import InterpM
 import MPLTypes
 import Syntax
 import Prelude hiding (readFile)
+import Dataframe (readCsv, printTable)
 
 applyPrint :: [Value] -> InterpM Value
+applyPrint ((DataframeV df) : vals) = do
+    io $ printTable df
+    applyPrint vals
 applyPrint vals = do
     io $ mapM_ print vals
     pure $ UnitV ()
+
+applyReadCsv :: [Value] -> InterpM Value
+applyReadCsv ((StringV f) : _) = do
+    t <- io $ readCsv f
+    pure $ DataframeV t
+applyReadCsv (v : _) = throwError $ TypeError StringT (typeOf v)
+applyReadCsv [] = throwError $ RuntimeError "read_csv expects a filename"
 
 applyTranscribe :: [Value] -> InterpM Value
 applyTranscribe ((DNAV dna) : _) = do

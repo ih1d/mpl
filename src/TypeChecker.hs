@@ -16,6 +16,7 @@ tc (Const (ClosureV{})) = pure FunT
 tc (Const (DNAV _)) = pure DNAT
 tc (Const (RNAV _)) = pure RNAT
 tc (Const (TupleV vs)) = pure $ TupleT (map typeOf vs)
+tc (Const (DataframeV _)) = pure DataframeT
 tc (UnOp Not (Const (BoolV _))) = pure BoolT
 tc (UnOp Not e) = do
     t <- tc e
@@ -180,6 +181,7 @@ tc (App f args) = do
             e <- lookupVar v
             tc (App e args)
         e -> tc e >>= throwError . TypeError FunT
+tc (Use _) = pure UnitT
 
 contains :: Id -> Expr -> Bool
 contains _ (Const _) = False
@@ -194,3 +196,4 @@ contains _ (LetR{}) = False
 contains name (Lam args e) = elem name args || contains name e
 contains name (App f args) = contains name f || any (contains name) args
 contains name (Tuple exprs) = any (contains name) exprs
+contains _ (Use _) = False

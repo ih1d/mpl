@@ -53,7 +53,7 @@ initTypeEnv =
     ]
 
 initialEnv :: Env
-initialEnv = Env initEnv initTypeEnv
+initialEnv = Env initEnv initTypeEnv Auto
 
 -- apply a function with scoped parameter bindings
 applyFn :: [Id] -> Expr -> [Expr] -> InterpM Value
@@ -186,7 +186,9 @@ eval (App f args) = do
                 Var "print" -> do
                     vals <- mapM eval args
                     applyPrint vals
-                Var "read_csv" -> undefined
+                Var "read_csv" -> do
+                    vals <- mapM eval args
+                    applyReadCsv vals
                 Var "transcribe" -> do
                     vals <- mapM eval args
                     applyTranscribe vals
@@ -206,3 +208,6 @@ eval (App f args) = do
             case fVal of
                 ClosureV params body -> applyFn params body args
                 _ -> throwError $ RuntimeError "application of non-function"
+eval (Use b) = do
+    setBackend b
+    pure (UnitV ())
