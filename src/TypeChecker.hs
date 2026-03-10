@@ -1,5 +1,3 @@
-{-# LANGUAGE LambdaCase #-}
-
 module TypeChecker where
 
 import Control.Monad (void)
@@ -18,9 +16,6 @@ tc (Const (ClosureV{})) = pure FunT
 tc (Const (DNAV _)) = pure DNAT
 tc (Const (RNAV _)) = pure RNAT
 tc (Const (TupleV vs)) = pure $ TupleT (map typeOf vs)
-tc (Const (DataframeV _)) = pure DataframeT
-tc (Const (ConstrV p _ _)) = pure (ADTT p)
-tc (Const (ConstrFunV p _ _ _)) = pure (ADTT p)
 tc (UnOp Not (Const (BoolV _))) = pure BoolT
 tc (UnOp Not e) = do
     t <- tc e
@@ -171,16 +166,6 @@ tc (LetR f args body) = do
     pure FunT
 tc (Lam _ _) = pure FunT
 tc (Tuple es) = TupleT <$> mapM tc es
-tc (Type ti) = do
-    let name = typeName ti
-        adtType = ADTT name
-    bindType name adtType
-    mapM_ (registerConstr name) (constr ti)
-    pure adtType
-  where
-    registerConstr parent c
-        | arity c == 0 = bindVar (constrName c) (Const (ConstrV parent (constrName c) []))
-        | otherwise = bindVar (constrName c) (Const (ConstrFunV parent (constrName c) (arity c) []))
 tc (App f args) = do
     case f of
         Var "print" -> pure UnitT
@@ -188,80 +173,6 @@ tc (App f args) = do
         Var "transcribe" -> pure RNAT
         Var "count_nucleotides" -> pure $ TupleT [IntT, IntT, IntT, IntT]
         Var "reverse_complement" -> pure DNAT
-        Var "length" -> pure IntT
-        Var "append" -> pure StringT
-        Var "abs" ->
-            case args of
-                [a] ->
-                    tc a >>= \case
-                        IntT -> pure IntT
-                        DoubleT -> pure DoubleT
-                        t -> throwError $ TypeError NumT t
-                _ -> throwError $ ParityMismatch "abs" 1
-        Var "min" ->
-            case args of
-                [a, b] ->
-                    tc a >>= \case
-                        IntT ->
-                            tc b >>= \case
-                                IntT -> pure IntT
-                                DoubleT -> pure NumT
-                                t -> throwError $ TypeError NumT t
-                        DoubleT ->
-                            tc b >>= \case
-                                IntT -> pure NumT
-                                DoubleT -> pure DoubleT
-                                t -> throwError $ TypeError NumT t
-                        t -> throwError $ TypeError NumT t
-                _ -> throwError $ ParityMismatch "min" 2
-        Var "max" ->
-            case args of
-                [a, b] ->
-                    tc a >>= \case
-                        IntT ->
-                            tc b >>= \case
-                                IntT -> pure IntT
-                                DoubleT -> pure NumT
-                                t -> throwError $ TypeError NumT t
-                        DoubleT ->
-                            tc b >>= \case
-                                IntT -> pure NumT
-                                DoubleT -> pure DoubleT
-                                t -> throwError $ TypeError NumT t
-                        t -> throwError $ TypeError NumT t
-                _ -> throwError $ ParityMismatch "max" 2
-        Var "exp" ->
-            case args of
-                [a] ->
-                    tc a >>= \case
-                        IntT -> pure DoubleT
-                        DoubleT -> pure DoubleT
-                        t -> throwError $ TypeError NumT t
-                _ -> throwError $ ParityMismatch "exp" 1
-        Var "sqrt" ->
-            case args of
-                [a] ->
-                    tc a >>= \case
-                        IntT -> pure DoubleT
-                        DoubleT -> pure DoubleT
-                        t -> throwError $ TypeError NumT t
-                _ -> throwError $ ParityMismatch "sqrt" 1
-        Var "ceil" ->
-            case args of
-                [a] ->
-                    tc a >>= \case
-                        IntT -> pure IntT
-                        DoubleT -> pure IntT
-                        t -> throwError $ TypeError NumT t
-                _ -> throwError $ ParityMismatch "ceil" 1
-        Var "floor" ->
-            case args of
-                [a] ->
-                    tc a >>= \case
-                        IntT -> pure IntT
-                        DoubleT -> pure IntT
-                        t -> throwError $ TypeError NumT t
-                _ -> throwError $ ParityMismatch "floor" 1
         Lam vars body -> do
             mapM_ (uncurry bindVar) (zip vars args)
             tc body
@@ -283,4 +194,3 @@ contains _ (LetR{}) = False
 contains name (Lam args e) = elem name args || contains name e
 contains name (App f args) = contains name f || any (contains name) args
 contains name (Tuple exprs) = any (contains name) exprs
-contains _ (Type _) = False

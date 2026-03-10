@@ -2,7 +2,6 @@ module Syntax where
 
 import Data.List (intercalate)
 import MPLTypes
-import System.Arrow (Table)
 import Text.Parsec (ParseError)
 
 type Id = String
@@ -23,8 +22,6 @@ data Types
     | RNAT
     | UnitT
     | TupleT [Types]
-    | DataframeT
-    | ADTT Id
     deriving (Eq)
 
 instance Show Types where
@@ -38,8 +35,6 @@ instance Show Types where
     show NumT = "numerical"
     show UnitT = "()"
     show (TupleT types) = "(" ++ intercalate ", " (map show types) ++ ")"
-    show DataframeT = "dataframe"
-    show (ADTT t) = t
 
 data Value
     = IntV Integer
@@ -51,9 +46,6 @@ data Value
     | ClosureV [Id] Expr
     | DNAV DNA
     | RNAV RNA
-    | DataframeV Table
-    | ConstrV Id Id [Value]
-    | ConstrFunV Id Id Int [Value]
     deriving (Eq)
 
 typeOf :: Value -> Types
@@ -66,9 +58,6 @@ typeOf (ClosureV{}) = FunT
 typeOf (DNAV _) = DNAT
 typeOf (RNAV _) = RNAT
 typeOf (TupleV vals) = TupleT (map typeOf vals)
-typeOf (DataframeV _) = DataframeT
-typeOf (ConstrV p _ _) = ADTT p
-typeOf (ConstrFunV p _ _ _) = ADTT p
 
 instance Show Value where
     show (IntV i) = show i
@@ -81,9 +70,6 @@ instance Show Value where
     show (DNAV dna) = show dna
     show (RNAV rna) = show rna
     show (TupleV vals) = "(" ++ intercalate ", " (map show vals) ++ ")"
-    show (DataframeV table) = show table
-    show (ConstrV parent constr vals) = parent ++ " : " ++ constr ++ " " ++ unwords (map show vals)
-    show (ConstrFunV parent constr a vals) = parent ++ " : " ++ constr ++ " " ++ unwords (map show vals) ++ " " ++ unwords (replicate a "*")
 
 data Op
     = Add
@@ -120,26 +106,6 @@ instance Show Op where
     show LtEq = "<="
     show Pipe = "|>"
 
-data Constructor = Constructor
-    { parent :: Id
-    , constrName :: Id
-    , arity :: Int
-    , tag :: Int
-    }
-    deriving (Eq)
-
-instance Show Constructor where
-    show (Constructor p n a _) = p ++ " : " ++ n ++ " " ++ unwords (replicate a "*")
-
-data TypeInfo = TypeInfo
-    { typeName :: Id
-    , typeVars :: [Id]
-    , constr :: [Constructor]
-    }
-    deriving (Eq)
-instance Show TypeInfo where
-    show (TypeInfo n vars c) = n ++ " " ++ unwords vars ++ unwords (map show c)
-
 data Expr
     = Const Value
     | UnOp Op Expr
@@ -153,7 +119,6 @@ data Expr
     | Lam [Id] Expr
     | App Expr [Expr]
     | Tuple [Expr]
-    | Type TypeInfo
     deriving (Eq)
 
 instance Show Expr where
@@ -169,7 +134,6 @@ instance Show Expr where
     show (Lam args e) = "lambda " ++ unwords args ++ " -> " ++ show e
     show (App e0 e1) = show e0 ++ " " ++ show e1
     show (Tuple es) = "(" ++ intercalate ", " (map show es) ++ ")"
-    show (Type t) = show t
 
 data Error
     = ParseE ParseError
