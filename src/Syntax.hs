@@ -1,9 +1,9 @@
 module Syntax where
 
 import Data.List (intercalate)
+import Dataframe (Table)
 import MPLTypes
 import Text.Parsec (ParseError)
-import Dataframe (Table)
 
 type Id = String
 

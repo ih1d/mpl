@@ -1,11 +1,11 @@
 module Primitives where
 
 import Control.Monad.Except (throwError)
+import Dataframe (printTable, readCsv)
 import InterpM
 import MPLTypes
 import Syntax
 import Prelude hiding (readFile)
-import Dataframe (readCsv, printTable)
 
 applyPrint :: [Value] -> InterpM Value
 applyPrint ((DataframeV df) : vals) = do
