@@ -35,3 +35,7 @@ executable mpl
                     , parsec
     hs-source-dirs:   src
     default-language: GHC2021
+    include-dirs:     cbits
+    pkgconfig-depends:
+        arrow-glib,
+        arrow-cuda-glib
