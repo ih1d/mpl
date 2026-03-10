@@ -179,7 +179,6 @@ tc (Type ti) = do
     registerConstr parent c
         | arity c == 0 = bindVar (constrName c) (Const (ConstrV parent (constrName c) []))
         | otherwise = bindVar (constrName c) (Const (ConstrFunV parent (constrName c) (arity c) []))
-
 tc (App f args) = do
     case f of
         Var "print" -> pure UnitT
@@ -203,7 +202,7 @@ tc (App f args) = do
             e <- lookupVar v
             tc (App e args)
         e -> tc e >>= throwError . TypeError FunT
-    
+
 contains :: Id -> Expr -> Bool
 contains _ (Const _) = False
 contains name (UnOp _ e) = contains name e

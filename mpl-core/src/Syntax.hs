@@ -125,7 +125,8 @@ data Constructor = Constructor
     , constrName :: Id
     , arity :: Int
     , tag :: Int
-    } deriving (Eq)
+    }
+    deriving (Eq)
 
 instance Show Constructor where
     show (Constructor p n a _) = p ++ " : " ++ n ++ " " ++ unwords (replicate a "*")
@@ -134,7 +135,8 @@ data TypeInfo = TypeInfo
     { typeName :: Id
     , typeVars :: [Id]
     , constr :: [Constructor]
-    } deriving (Eq)
+    }
+    deriving (Eq)
 instance Show TypeInfo where
     show (TypeInfo n vars c) = n ++ " " ++ unwords vars ++ unwords (map show c)
 
@@ -168,7 +170,7 @@ instance Show Expr where
     show (App e0 e1) = show e0 ++ " " ++ show e1
     show (Tuple es) = "(" ++ intercalate ", " (map show es) ++ ")"
     show (Type t) = show t
-    
+
 data Error
     = ParseE ParseError
     | NotInScope Id Expr
