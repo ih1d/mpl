@@ -39,3 +39,8 @@ applyReadCsv ((StringV f) : _) = do
     pure $ DataframeV t
 applyReadCsv (v : _) = throwError $ TypeError StringT (typeOf v)
 applyReadCsv [] = throwError $ RuntimeError "read_csv expects a file path"
+
+applyLength :: [Value] -> InterpM Value
+applyLength ((StringV s) : _) = let l = length s in pure (IntV $ fromIntegral l)
+applyLength (v : _) = throwError $ TypeError StringT (typeOf v)
+applyLength [] = throwError $ RuntimeError "reverse_complement expects 1 argument"

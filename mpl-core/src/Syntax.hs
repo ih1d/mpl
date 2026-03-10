@@ -177,9 +177,11 @@ data Error
     | RuntimeError String
     | TypeError Types Types
     | Unbound Id
+    | ParityMismatch Id Int
 instance Show Error where
     show (ParseE pe) = show pe
     show (TypeError t0 t1) = "expected type: " ++ show t0 ++ ", got: " ++ show t1
     show (Unbound v) = "unbound name: " ++ v
     show (RuntimeError msg) = msg
     show (NotInScope f e) = f ++ " is not in scope in the expression: " ++ show e
+    show (ParityMismatch f n) = "parity mismatch for: " ++ f ++ ", expects " ++ show n ++ " number of argument(s)"

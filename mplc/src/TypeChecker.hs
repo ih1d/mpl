@@ -1,3 +1,5 @@
+{-# LANGUAGE LambdaCase #-}
+
 module TypeChecker where
 
 import Control.Monad (void)
@@ -186,15 +188,80 @@ tc (App f args) = do
         Var "transcribe" -> pure RNAT
         Var "count_nucleotides" -> pure $ TupleT [IntT, IntT, IntT, IntT]
         Var "reverse_complement" -> pure DNAT
-        Var "length" -> undefined
-        Var "append" -> undefined
-        Var "abs" -> undefined
-        Var "min" -> undefined
-        Var "max" -> undefined
-        Var "exp" -> undefined
-        Var "sqrt" -> undefined
-        Var "ceil" -> undefined
-        Var "floor" -> undefined
+        Var "length" -> pure IntT
+        Var "append" -> pure StringT
+        Var "abs" ->
+            case args of
+                [a] ->
+                    tc a >>= \case
+                        IntT -> pure IntT
+                        DoubleT -> pure DoubleT
+                        t -> throwError $ TypeError NumT t
+                _ -> throwError $ ParityMismatch "abs" 1
+        Var "min" ->
+            case args of
+                [a, b] ->
+                    tc a >>= \case
+                        IntT ->
+                            tc b >>= \case
+                                IntT -> pure IntT
+                                DoubleT -> pure NumT
+                                t -> throwError $ TypeError NumT t
+                        DoubleT ->
+                            tc b >>= \case
+                                IntT -> pure NumT
+                                DoubleT -> pure DoubleT
+                                t -> throwError $ TypeError NumT t
+                        t -> throwError $ TypeError NumT t
+                _ -> throwError $ ParityMismatch "min" 2
+        Var "max" ->
+            case args of
+                [a, b] ->
+                    tc a >>= \case
+                        IntT ->
+                            tc b >>= \case
+                                IntT -> pure IntT
+                                DoubleT -> pure NumT
+                                t -> throwError $ TypeError NumT t
+                        DoubleT ->
+                            tc b >>= \case
+                                IntT -> pure NumT
+                                DoubleT -> pure DoubleT
+                                t -> throwError $ TypeError NumT t
+                        t -> throwError $ TypeError NumT t
+                _ -> throwError $ ParityMismatch "max" 2
+        Var "exp" ->
+            case args of
+                [a] ->
+                    tc a >>= \case
+                        IntT -> pure DoubleT
+                        DoubleT -> pure DoubleT
+                        t -> throwError $ TypeError NumT t
+                _ -> throwError $ ParityMismatch "exp" 1
+        Var "sqrt" ->
+            case args of
+                [a] ->
+                    tc a >>= \case
+                        IntT -> pure DoubleT
+                        DoubleT -> pure DoubleT
+                        t -> throwError $ TypeError NumT t
+                _ -> throwError $ ParityMismatch "sqrt" 1
+        Var "ceil" ->
+            case args of
+                [a] ->
+                    tc a >>= \case
+                        IntT -> pure IntT
+                        DoubleT -> pure IntT
+                        t -> throwError $ TypeError NumT t
+                _ -> throwError $ ParityMismatch "ceil" 1
+        Var "floor" ->
+            case args of
+                [a] ->
+                    tc a >>= \case
+                        IntT -> pure IntT
+                        DoubleT -> pure IntT
+                        t -> throwError $ TypeError NumT t
+                _ -> throwError $ ParityMismatch "floor" 1
         Lam vars body -> do
             mapM_ (uncurry bindVar) (zip vars args)
             tc body

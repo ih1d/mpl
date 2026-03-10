@@ -216,6 +216,9 @@ eval (App f args) = do
                 Var "reverse_complement" -> do
                     vals <- mapM eval args
                     applyReverseComplement vals
+                Var "length" -> do
+                    vals <- mapM eval args
+                    applyLength vals
                 _ -> do
                     fVal <- eval expr
                     case fVal of
