@@ -12,7 +12,7 @@ data Backend
     | CPU
     | Auto
     deriving (Eq)
-    
+
 instance Show Backend where
     show NVIDIA = "nvidia"
     show OpenCL = "opencl"
