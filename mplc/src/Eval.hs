@@ -37,6 +37,15 @@ initEnv =
     , ("transcribe", Var "transcribe")
     , ("reverse_complement", Var "reverse_complement")
     , ("read_csv", Var "read_csv")
+    , ("length", Var "length")
+    , ("append", Var "append")
+    , ("abs", Var "abs")
+    , ("min", Var "min")
+    , ("max", Var "max")
+    , ("exp", Var "exp")
+    , ("sqrt", Var "sqrt")
+    , ("ceil", Var "ceil")
+    , ("floor", Var "floor")
     ]
 
 initTypeEnv :: [(Id, Types)]
@@ -177,6 +186,15 @@ eval (LetR f args body) = do
     pure $ ClosureV args body
 eval (Lam args body) = pure $ ClosureV args body
 eval (Tuple es) = TupleV <$> mapM eval es
+eval (Type ti) = do
+    let name = typeName ti
+    bindType name (ADTT name)
+    mapM_ (registerConstr name) (constr ti)
+    pure $ UnitV ()
+  where
+    registerConstr parent c
+        | arity c == 0 = bindVar (constrName c) (Const (ConstrV parent (constrName c) []))
+        | otherwise = bindVar (constrName c) (Const (ConstrFunV parent (constrName c) (arity c) []))
 eval (App f args) = do
     case f of
         Lam params body -> applyFn params body args

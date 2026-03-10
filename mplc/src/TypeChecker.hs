@@ -17,6 +17,8 @@ tc (Const (DNAV _)) = pure DNAT
 tc (Const (RNAV _)) = pure RNAT
 tc (Const (TupleV vs)) = pure $ TupleT (map typeOf vs)
 tc (Const (DataframeV _)) = pure DataframeT
+tc (Const (ConstrV p _ _)) = pure (ADTT p)
+tc (Const (ConstrFunV p _ _ _)) = pure (ADTT p)
 tc (UnOp Not (Const (BoolV _))) = pure BoolT
 tc (UnOp Not e) = do
     t <- tc e
@@ -167,6 +169,17 @@ tc (LetR f args body) = do
     pure FunT
 tc (Lam _ _) = pure FunT
 tc (Tuple es) = TupleT <$> mapM tc es
+tc (Type ti) = do
+    let name = typeName ti
+        adtType = ADTT name
+    bindType name adtType
+    mapM_ (registerConstr name) (constr ti)
+    pure adtType
+  where
+    registerConstr parent c
+        | arity c == 0 = bindVar (constrName c) (Const (ConstrV parent (constrName c) []))
+        | otherwise = bindVar (constrName c) (Const (ConstrFunV parent (constrName c) (arity c) []))
+
 tc (App f args) = do
     case f of
         Var "print" -> pure UnitT
@@ -174,6 +187,15 @@ tc (App f args) = do
         Var "transcribe" -> pure RNAT
         Var "count_nucleotides" -> pure $ TupleT [IntT, IntT, IntT, IntT]
         Var "reverse_complement" -> pure DNAT
+        Var "length" -> undefined
+        Var "append" -> undefined
+        Var "abs" -> undefined
+        Var "min" -> undefined
+        Var "max" -> undefined
+        Var "exp" -> undefined
+        Var "sqrt" -> undefined
+        Var "ceil" -> undefined
+        Var "floor" -> undefined
         Lam vars body -> do
             mapM_ (uncurry bindVar) (zip vars args)
             tc body
@@ -181,7 +203,7 @@ tc (App f args) = do
             e <- lookupVar v
             tc (App e args)
         e -> tc e >>= throwError . TypeError FunT
-
+    
 contains :: Id -> Expr -> Bool
 contains _ (Const _) = False
 contains name (UnOp _ e) = contains name e
@@ -195,3 +217,4 @@ contains _ (LetR{}) = False
 contains name (Lam args e) = elem name args || contains name e
 contains name (App f args) = contains name f || any (contains name) args
 contains name (Tuple exprs) = any (contains name) exprs
+contains _ (Type _) = False
