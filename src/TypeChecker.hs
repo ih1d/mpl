@@ -133,7 +133,7 @@ tc (BinOp op e0 e1) = do
                 (t, IntT) -> throwError $ TypeError NumT t
                 (t, DoubleT) -> throwError $ TypeError NumT t
                 (t, _) -> throwError $ TypeError NumT t
-        Pipe -> 
+        Pipe ->
             case (t0, t1) of
                 (DataframeT, DataframeT) -> undefined
                 (DataframeT, t) -> throwError $ TypeError DataframeT t
