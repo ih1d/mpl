@@ -133,7 +133,11 @@ tc (BinOp op e0 e1) = do
                 (t, IntT) -> throwError $ TypeError NumT t
                 (t, DoubleT) -> throwError $ TypeError NumT t
                 (t, _) -> throwError $ TypeError NumT t
-        Pipe -> undefined
+        Pipe -> 
+            case (t0, t1) of
+                (DataframeT, DataframeT) -> undefined
+                (DataframeT, t) -> throwError $ TypeError DataframeT t
+                (t, _) -> throwError $ TypeError DataframeT t
         Not -> throwError $ RuntimeError "not is an unary operator"
 tc (If cnd e0 e1) = do
     tcnd <- tc cnd
