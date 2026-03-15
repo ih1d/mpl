@@ -42,6 +42,8 @@ executable mpl
     if os(linux)
         pkgconfig-depends:
             arrow-cuda-glib
+        build-depends:
+            cuda
     pkgconfig-depends:
         arrow-glib
     c-sources:
