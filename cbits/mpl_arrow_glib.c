@@ -70,6 +70,8 @@ Field schema_get_field(Schema schema, guint i) { return garrow_schema_get_field(
 // Get name from a field
 const char* field_get_name(Field field) { return garrow_field_get_name(field); }
 
+Field field_new(const char* column_name, GArrowDataType* arrow) { return garrow_field_new(column_name, arrow); }
+
 // Pretty print a table
 void print_table(Table table, gint64 max_rows) {
     gint64 rows = table_nrows(table);
@@ -245,6 +247,9 @@ Table filter_lt(Table table, const char* col_name, double value) {
     return result;
 }
 
+StringArrayBuilder build_string_array_builer() { return garrow_string_array_builder_new(); }
+Int64ArrayBuilder build_int64_array_builder() { return garrow_int64_array_builder_new(); }
+
 // Filter table: keep rows where column == value
 Table filter_eq(Table table, const char* col_name, double value) {
     gint col_idx = find_column_index(table, col_name);
@@ -270,7 +275,7 @@ Table build_kmer_table(const char** kmers, const gint64* counts, gint64 n) {
     GError* err = NULL;
 
     // Build string column
-    GArrowStringArrayBuilder* str_builder = garrow_string_array_builder_new();
+    StringArrayBuilder str_builder = build_string_array_builer();
     gint64 i;
     for(i = 0; i < n; i++) {
         garrow_string_array_builder_append_string(str_builder, kmers[i], &err);
@@ -290,7 +295,7 @@ Table build_kmer_table(const char** kmers, const gint64* counts, gint64 n) {
     }
 
     // Build int64 column
-    GArrowInt64ArrayBuilder* int_builder = garrow_int64_array_builder_new();
+    Int64ArrayBuilder int_builder = build_int64_array_builder();
     for(i = 0; i < n; i++) {
         garrow_int64_array_builder_append_value(int_builder, counts[i], &err);
         if(err) {
@@ -311,8 +316,8 @@ Table build_kmer_table(const char** kmers, const gint64* counts, gint64 n) {
     }
 
     // Build schema with two fields
-    GArrowField* kmer_field = garrow_field_new("kmer", GARROW_DATA_TYPE(garrow_string_data_type_new()));
-    GArrowField* count_field = garrow_field_new("count", GARROW_DATA_TYPE(garrow_int64_data_type_new()));
+    Field kmer_field = field_new("kmer", GARROW_DATA_TYPE(garrow_string_data_type_new()));
+    Field count_field = field_new("count", GARROW_DATA_TYPE(garrow_int64_data_type_new()));
 
     GList* fields = NULL;
     fields = g_list_append(fields, kmer_field);

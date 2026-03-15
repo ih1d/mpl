@@ -14,12 +14,15 @@ typedef GArrowSchema*               Schema;
 typedef GArrowField*                Field;
 typedef GArrowBooleanArray*         BooleanArray;
 typedef GArrowBooleanArrayBuilder*  BooleanArrayBuilder;
+typedef GArrowStringArrayBuilder*   StringArrayBuilder;
+typedef GArrowInt64ArrayBuilder*    Int64ArrayBuilder;
 
 /* Functions */
 Table               read_csv(const char* path);
 gint64              table_nrows(Table table);
 guint               table_ncols(Table table);
 Schema              table_get_schema(Table table);
+Field               field_new(const char* column_name, GArrowDataType* arrow);
 Field               schema_get_field(Schema schema, guint i);
 gint                find_column_index(Table table, const char* col_name);
 const char*         field_get_name(Field field);
@@ -33,6 +36,8 @@ Table               filter_lt(Table table, const char* col_name, double value);
 Table               filter_eq(Table table, const char* col_name, double value);
 BooleanArrayBuilder build_boolean_array_builder();
 BooleanArray        build_boolean_array(Table table, gint col, double val, int cmp);
+StringArrayBuilder  build_string_array_builer();
+Int64ArrayBuilder   build_int64_array_builder();
 Table               build_kmer_table(const char** kmers, const gint64* counts, gint64 n);
 void                table_free(Table table);
 
