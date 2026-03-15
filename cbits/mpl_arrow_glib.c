@@ -135,6 +135,136 @@ void print_table(Table table, gint64 max_rows) {
     printf("[%lld rows x %u cols]\n", (long long)rows, cols);
 }
 
+// find column index by name, returns -1 if not found
+gint find_column_index(Table table, const char* col_name) {
+    guint cols = table_ncols(table);
+    guint i;
+    for(i = 0; i < cols; i++) {
+        const gchar* name = column_name(table, i);
+        if(g_strcmp0(name, col_name) == 0) return (gint)i;
+    }
+    return -1;
+}
+
+BooleanArrayBuilder build_boolean_array_builder() { return garrow_boolean_array_builder_new(); }
+
+// Helper: build a boolean mask array from a column using a comparator
+// cmp_mode: 0 = gt, 1 = lt, 2 = eq
+BooleanArray build_boolean_array(Table table, gint col_idx, double value, int cmp_mode) {
+    gint64 nrows = table_nrows(table);
+    BooleanArrayBuilder builder = build_boolean_array_builder();
+    GError* err = NULL;
+
+    ChunkedArray chunk = table_get_column_data(table, (guint)col_idx);
+    guint n_chunks = garrow_chunked_array_get_n_chunks(chunk);
+
+    guint ci;
+    for(ci = 0; ci < n_chunks; ci++) {
+        Array arr = chunked_array_get_chunk(chunk, ci);
+        gint64 len = array_length(arr);
+        gint64 j;
+        for(j = 0; j < len; j++) {
+            gboolean result = FALSE;
+            if(array_is_null(arr, j)) {
+                result = FALSE;
+            } else if(GARROW_IS_DOUBLE_ARRAY(arr)) {
+                double v = garrow_double_array_get_value(GARROW_DOUBLE_ARRAY(arr), j);
+                if(cmp_mode == 0) result = v > value;
+                else if(cmp_mode == 1) result = v < value;
+                else result = v == value;
+            } else if(GARROW_IS_INT64_ARRAY(arr)) {
+                gint64 v = garrow_int64_array_get_value(GARROW_INT64_ARRAY(arr), j);
+                if(cmp_mode == 0) result = v > (gint64)value;
+                else if(cmp_mode == 1) result = v < (gint64)value;
+                else result = v == (gint64)value;
+            } else {
+                result = FALSE;
+            }
+            garrow_boolean_array_builder_append_value(GARROW_BOOLEAN_ARRAY_BUILDER(builder), result, &err);
+            if(err) {
+                fprintf(stderr, "build_mask: %s\n", err->message);
+                g_error_free(err);
+                err = NULL;
+            }
+        }
+        g_object_unref(arr);
+    }
+    g_object_unref(chunk);
+
+    BooleanArray boolArr = GARROW_BOOLEAN_ARRAY(
+        garrow_array_builder_finish(GARROW_ARRAY_BUILDER(builder), &err));
+    g_object_unref(builder);
+
+    if(err) {
+        fprintf(stderr, "build_mask finish: %s\n", err->message);
+        g_error_free(err);
+        return NULL;
+    }
+    return boolArr;
+}
+
+// Filter table: keep rows where column > value
+Table filter_gt(Table table, const char* col_name, double value) {
+    gint col_idx = find_column_index(table, col_name);
+    if(col_idx < 0) {
+        fprintf(stderr, "filter_gt: column '%s' not found\n", col_name);
+        return NULL;
+    }
+    BooleanArray mask = build_boolean_array(table, col_idx, value, 0);
+    if(!mask) return NULL;
+
+    GError* err = NULL;
+    Table result = garrow_table_filter(table, GARROW_BOOLEAN_ARRAY(mask), NULL, &err);
+    g_object_unref(mask);
+    if(err) {
+        fprintf(stderr, "filter_gt: %s\n", err->message);
+        g_error_free(err);
+        return NULL;
+    }
+    return result;
+}
+
+// Filter table: keep rows where column < value
+Table filter_lt(Table table, const char* col_name, double value) {
+    gint col_idx = find_column_index(table, col_name);
+    if(col_idx < 0) {
+        fprintf(stderr, "filter_lt: column '%s' not found\n", col_name);
+        return NULL;
+    }
+    BooleanArray mask = build_boolean_array(table, col_idx, value, 1);
+    if(!mask) return NULL;
+
+    GError* err = NULL;
+    Table result = garrow_table_filter(table, GARROW_BOOLEAN_ARRAY(mask), NULL, &err);
+    g_object_unref(mask);
+    if(err) {
+        fprintf(stderr, "filter_lt: %s\n", err->message);
+        g_error_free(err);
+        return NULL;
+    }
+    return result;
+}
+
+// Filter table: keep rows where column == value
+Table filter_eq(Table table, const char* col_name, double value) {
+    gint col_idx = find_column_index(table, col_name);
+    if(col_idx < 0) {
+        fprintf(stderr, "filter_eq: column '%s' not found\n", col_name);
+        return NULL;
+    }
+    BooleanArray mask = build_boolean_array(table, col_idx, value, 2);
+    if(!mask) return NULL;
+
+    GError* err = NULL;
+    Table result = garrow_table_filter(table, GARROW_BOOLEAN_ARRAY(mask), NULL, &err);
+    g_object_unref(mask);
+    if(err) {
+        fprintf(stderr, "filter_eq: %s\n", err->message);
+        g_error_free(err);
+        return NULL;
+    }
+    return result;
+}
 // free table
 void table_free(Table table) {
     if(table) g_object_unref(table);

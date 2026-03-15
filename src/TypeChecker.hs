@@ -135,8 +135,8 @@ tc (BinOp op e0 e1) = do
                 (t, _) -> throwError $ TypeError NumT t
         Pipe ->
             case (t0, t1) of
-                (DataframeT, DataframeT) -> undefined
-                (DataframeT, t) -> throwError $ TypeError DataframeT t
+                (DataframeT, FunT) -> pure DataframeT
+                (DataframeT, t) -> throwError $ TypeError FunT t
                 (t, _) -> throwError $ TypeError DataframeT t
         Not -> throwError $ RuntimeError "not is an unary operator"
 tc (If cnd e0 e1) = do
@@ -174,10 +174,11 @@ tc (Tuple es) = TupleT <$> mapM tc es
 tc (App f args) = do
     case f of
         Var "print" -> pure UnitT
-        Var "read_csv" -> pure UnitT
+        Var "read_csv" -> pure DataframeT
         Var "transcribe" -> pure RNAT
         Var "count_nucleotides" -> pure $ TupleT [IntT, IntT, IntT, IntT]
         Var "reverse_complement" -> pure DNAT
+        Var "filter" -> pure FunT
         Lam vars body -> do
             mapM_ (uncurry bindVar) (zip vars args)
             tc body

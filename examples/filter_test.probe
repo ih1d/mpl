@@ -1,0 +1,10 @@
+let df = read_csv "data/sample.csv"
+
+(* filter_gt: genes with total_reads > 20000 *)
+let gt_result = df |> filter "total_reads" (lambda x -> x > 20000) in print gt_result
+
+(* filter_lt: genes with pvalue < 0.001 *)
+let lt_result = df |> filter "pvalue" (lambda x -> x < 0.001) in print lt_result
+
+(* filter_eq: genes with total_reads == 890 *)
+let eq_result = df |> filter "total_reads" (lambda x -> x == 890) in print eq_result

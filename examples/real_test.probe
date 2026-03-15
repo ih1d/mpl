@@ -1,1 +1,1 @@
-let df = read_csv "data/GSE132465_GEO_processed_CRC_10X_cell_annotation.csv" in print df
+let df = read_csv "data/sample.csv" in df |> filter "total_read" (lambda x -> x > 100) |> print

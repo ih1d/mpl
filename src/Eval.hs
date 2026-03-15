@@ -37,6 +37,7 @@ initEnv =
     , ("transcribe", Var "transcribe")
     , ("reverse_complement", Var "reverse_complement")
     , ("read_csv", Var "read_csv")
+    , ("filter", Var "filter")
     ]
 
 initTypeEnv :: [(Id, Types)]
@@ -72,6 +73,14 @@ eval (UnOp Not (Const (BoolV b))) = pure $ BoolV (not b)
 eval (UnOp Sub (Const (IntV i))) = pure $ IntV (-i)
 eval (UnOp Sub (Const (DoubleV d))) = pure $ DoubleV (-d)
 eval (UnOp op _) = throwError $ RuntimeError ("not unary operator: " ++ show op)
+eval (BinOp Pipe e0 e1) = do
+    v0 <- eval e0
+    case v0 of
+        DataframeV _ ->
+            case e1 of
+                (App (Var "filter") args) -> eval (App (Var "filter") (e0 : args))
+                _ -> undefined
+        v -> throwError $ RuntimeError ("|> expects a dataframe, got: " ++ show v)
 eval (BinOp op e0 e1) = do
     (v0, v1) <- (,) <$> eval e0 <*> eval e1
     case op of
@@ -155,7 +164,6 @@ eval (BinOp op e0 e1) = do
                 (DoubleV d, IntV i) -> pure (BoolV (d <= fromInteger i))
                 (IntV i, DoubleV d) -> pure (BoolV (fromInteger i <= d))
                 _ -> throwError $ RuntimeError "expectected numerical values for <="
-        Pipe -> undefined
 eval (If cnd e0 e1) = do
     cnd' <- eval cnd
     case cnd' of
@@ -198,6 +206,9 @@ eval (App f args) = do
                 Var "reverse_complement" -> do
                     vals <- mapM eval args
                     applyReverseComplement vals
+                Var "filter" -> do
+                    vals <- mapM eval args
+                    applyFilter vals
                 _ -> do
                     fVal <- eval expr
                     case fVal of

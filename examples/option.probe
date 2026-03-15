@@ -1,3 +1,0 @@
-type option a = some a | none
-
-type Either l r = Left l | Right r
