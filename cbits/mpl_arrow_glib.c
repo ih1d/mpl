@@ -265,6 +265,114 @@ Table filter_eq(Table table, const char* col_name, double value) {
     }
     return result;
 }
+// Build a two-column table from parallel arrays of strings and int64s
+Table build_kmer_table(const char** kmers, const gint64* counts, gint64 n) {
+    GError* err = NULL;
+
+    // Build string column
+    GArrowStringArrayBuilder* str_builder = garrow_string_array_builder_new();
+    gint64 i;
+    for(i = 0; i < n; i++) {
+        garrow_string_array_builder_append_string(str_builder, kmers[i], &err);
+        if(err) {
+            fprintf(stderr, "build_kmer_table: %s\n", err->message);
+            g_error_free(err);
+            g_object_unref(str_builder);
+            return NULL;
+        }
+    }
+    Array str_arr = GARROW_ARRAY(garrow_array_builder_finish(GARROW_ARRAY_BUILDER(str_builder), &err));
+    g_object_unref(str_builder);
+    if(err) {
+        fprintf(stderr, "build_kmer_table: %s\n", err->message);
+        g_error_free(err);
+        return NULL;
+    }
+
+    // Build int64 column
+    GArrowInt64ArrayBuilder* int_builder = garrow_int64_array_builder_new();
+    for(i = 0; i < n; i++) {
+        garrow_int64_array_builder_append_value(int_builder, counts[i], &err);
+        if(err) {
+            fprintf(stderr, "build_kmer_table: %s\n", err->message);
+            g_error_free(err);
+            g_object_unref(int_builder);
+            g_object_unref(str_arr);
+            return NULL;
+        }
+    }
+    Array int_arr = GARROW_ARRAY(garrow_array_builder_finish(GARROW_ARRAY_BUILDER(int_builder), &err));
+    g_object_unref(int_builder);
+    if(err) {
+        fprintf(stderr, "build_kmer_table: %s\n", err->message);
+        g_error_free(err);
+        g_object_unref(str_arr);
+        return NULL;
+    }
+
+    // Build schema with two fields
+    GArrowField* kmer_field = garrow_field_new("kmer", GARROW_DATA_TYPE(garrow_string_data_type_new()));
+    GArrowField* count_field = garrow_field_new("count", GARROW_DATA_TYPE(garrow_int64_data_type_new()));
+
+    GList* fields = NULL;
+    fields = g_list_append(fields, kmer_field);
+    fields = g_list_append(fields, count_field);
+    Schema schema = garrow_schema_new(fields);
+
+    // Build chunked arrays (single chunk each)
+    GList* str_chunks = g_list_append(NULL, str_arr);
+    ChunkedArray str_chunked = garrow_chunked_array_new(str_chunks, &err);
+    g_list_free(str_chunks);
+    if(err) {
+        fprintf(stderr, "build_kmer_table: %s\n", err->message);
+        g_error_free(err);
+        g_object_unref(str_arr);
+        g_object_unref(int_arr);
+        g_object_unref(schema);
+        g_object_unref(kmer_field);
+        g_object_unref(count_field);
+        g_list_free(fields);
+        return NULL;
+    }
+
+    GList* int_chunks = g_list_append(NULL, int_arr);
+    ChunkedArray int_chunked = garrow_chunked_array_new(int_chunks, &err);
+    g_list_free(int_chunks);
+    if(err) {
+        fprintf(stderr, "build_kmer_table: %s\n", err->message);
+        g_error_free(err);
+        g_object_unref(str_arr);
+        g_object_unref(int_arr);
+        g_object_unref(str_chunked);
+        g_object_unref(schema);
+        g_object_unref(kmer_field);
+        g_object_unref(count_field);
+        g_list_free(fields);
+        return NULL;
+    }
+
+    // Build table
+    ChunkedArray chunked_arrays[2] = { str_chunked, int_chunked };
+    Table table = garrow_table_new_chunked_arrays(schema, chunked_arrays, 2, &err);
+
+    // Cleanup
+    g_list_free(fields);
+    g_object_unref(schema);
+    g_object_unref(kmer_field);
+    g_object_unref(count_field);
+    g_object_unref(str_arr);
+    g_object_unref(int_arr);
+    g_object_unref(str_chunked);
+    g_object_unref(int_chunked);
+
+    if(err) {
+        fprintf(stderr, "build_kmer_table: %s\n", err->message);
+        g_error_free(err);
+        return NULL;
+    }
+    return table;
+}
+
 // free table
 void table_free(Table table) {
     if(table) g_object_unref(table);

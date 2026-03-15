@@ -33,6 +33,7 @@ Table               filter_lt(Table table, const char* col_name, double value);
 Table               filter_eq(Table table, const char* col_name, double value);
 BooleanArrayBuilder build_boolean_array_builder();
 BooleanArray        build_boolean_array(Table table, gint col, double val, int cmp);
+Table               build_kmer_table(const char** kmers, const gint64* counts, gint64 n);
 void                table_free(Table table);
 
 #endif

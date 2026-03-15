@@ -4,7 +4,11 @@ module MPLTypes (
     transcribe,
     countNucleotides,
     reverseComplement,
+    frequentKmers,
 ) where
+
+import Data.Map.Strict qualified as Map
+import Dataframe (Table, buildKmerTable)
 
 newtype DNA = DNA String deriving (Eq)
 instance Show DNA where
@@ -39,3 +43,9 @@ complement c = error $ c : " is not a nucleotide."
 
 reverseComplement :: DNA -> DNA
 reverseComplement (DNA dna) = DNA (map complement (reverse dna))
+
+frequentKmers :: DNA -> Integer -> IO Table
+frequentKmers (DNA dna) k = buildKmerTable (Map.toDescList counts)
+  where
+    kmers = [take (fromInteger k) (drop i dna) | i <- [0 .. length dna - (fromInteger k)]]
+    counts = foldl (\m kmer -> Map.insertWith (+) kmer 1 m) Map.empty kmers

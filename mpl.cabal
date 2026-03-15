@@ -33,6 +33,7 @@ executable mpl
         Dataframe
         CodeGen
     build-depends:    base ^>=4.18.3.0
+                    , containers
                     , mtl
                     , parsec
     hs-source-dirs:   src

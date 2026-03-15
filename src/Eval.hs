@@ -38,6 +38,7 @@ initEnv =
     , ("reverse_complement", Var "reverse_complement")
     , ("read_csv", Var "read_csv")
     , ("filter", Var "filter")
+    , ("kmers", Var "kmers")
     ]
 
 initTypeEnv :: [(Id, Types)]
@@ -78,8 +79,15 @@ eval (BinOp Pipe e0 e1) = do
     case v0 of
         DataframeV _ ->
             case e1 of
-                (App (Var "filter") args) -> eval (App (Var "filter") (e0 : args))
-                _ -> undefined
+                (App (Var "filter") args) ->
+                    eval (App (Var "filter") (Const v0 : args))
+                (App (Var "print") args) ->
+                    eval (App (Var "print") (Const v0 : args))
+                (Var "print") ->
+                    eval (App (Var "print") [Const v0])
+                (Var "filter") ->
+                    eval (App (Var "filter") [Const v0])
+                _ -> throwError $ RuntimeError ("unsupported pipe target: " ++ show e1)
         v -> throwError $ RuntimeError ("|> expects a dataframe, got: " ++ show v)
 eval (BinOp op e0 e1) = do
     (v0, v1) <- (,) <$> eval e0 <*> eval e1
@@ -209,6 +217,9 @@ eval (App f args) = do
                 Var "filter" -> do
                     vals <- mapM eval args
                     applyFilter vals
+                Var "kmers" -> do
+                    vals <- mapM eval args
+                    applyKmers vals
                 _ -> do
                     fVal <- eval expr
                     case fVal of

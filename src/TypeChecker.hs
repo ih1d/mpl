@@ -134,10 +134,9 @@ tc (BinOp op e0 e1) = do
                 (t, DoubleT) -> throwError $ TypeError NumT t
                 (t, _) -> throwError $ TypeError NumT t
         Pipe ->
-            case (t0, t1) of
-                (DataframeT, FunT) -> pure DataframeT
-                (DataframeT, t) -> throwError $ TypeError FunT t
-                (t, _) -> throwError $ TypeError DataframeT t
+            case t0 of
+                DataframeT -> pure t1
+                t -> throwError $ TypeError DataframeT t
         Not -> throwError $ RuntimeError "not is an unary operator"
 tc (If cnd e0 e1) = do
     tcnd <- tc cnd
@@ -147,7 +146,19 @@ tc (If cnd e0 e1) = do
             te1 <- tc e1
             if te0 == te1 then pure te0 else throwError $ TypeError te0 te1
         _ -> throwError $ TypeError BoolT tcnd
-tc (Var v) = lookupVar v >>= tc
+tc (Var v)
+    | v `elem` builtins = pure FunT
+    | otherwise = lookupVar v >>= tc
+  where
+    builtins =
+        [ "print"
+        , "read_csv"
+        , "filter"
+        , "transcribe"
+        , "count_nucleotides"
+        , "reverse_complement"
+        , "kmers"
+        ]
 tc (Let v e) =
     if contains v e
         then throwError $ NotInScope v e
@@ -178,7 +189,8 @@ tc (App f args) = do
         Var "transcribe" -> pure RNAT
         Var "count_nucleotides" -> pure $ TupleT [IntT, IntT, IntT, IntT]
         Var "reverse_complement" -> pure DNAT
-        Var "filter" -> pure FunT
+        Var "filter" -> pure DataframeT
+        Var "kmers" -> pure DataframeT
         Lam vars body -> do
             mapM_ (uncurry bindVar) (zip vars args)
             tc body

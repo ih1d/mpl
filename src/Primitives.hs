@@ -1,7 +1,7 @@
 module Primitives where
 
 import Control.Monad.Except (throwError)
-import Dataframe (filterTableEq, filterTableGt, filterTableLt, printTable, readCsv)
+import Dataframe
 import InterpM
 import MPLTypes
 import Syntax
@@ -87,3 +87,11 @@ applyFilter ((DataframeV _) : (StringV _) : v) = throwError $ RuntimeError ("fil
 applyFilter ((DataframeV _) : v : _) = throwError $ RuntimeError ("filter expects a column name (string), got: " ++ show v)
 applyFilter (v : _) = throwError $ RuntimeError ("filter expects a dataframe, got: " ++ show v)
 applyFilter [] = throwError $ RuntimeError "filter expects 3 arguments: a dataframe, a column name (string) and a function"
+
+applyKmers :: [Value] -> InterpM Value
+applyKmers ((DNAV dna) : (IntV k) : _) = do
+    t <- io $ frequentKmers dna k
+    pure $ DataframeV t
+applyKmers ((DNAV _) : v : _) = throwError $ TypeError IntT (typeOf v)
+applyKmers (v : _) = throwError $ TypeError DNAT (typeOf v)
+applyKmers [] = throwError $ RuntimeError "kmers expects a DNA sequence and an integer"
