@@ -40,8 +40,6 @@ executable mpl
     default-language: GHC2021
     include-dirs:     cbits/include
     if os(linux)
-        pkgconfig-depends:
-            arrow-cuda-glib
         build-depends:
             cuda
     pkgconfig-depends:
