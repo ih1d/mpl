@@ -7,8 +7,9 @@ module MPLTypes (
     frequentKmers,
 ) where
 
-import Data.Map.Strict qualified as Map
-import Dataframe (Dataframe)
+import Data.List (sortBy)
+import Data.Ord (Down (..), comparing)
+import Dataframe (Dataframe, makeKmerDf)
 
 newtype DNA = DNA String deriving (Eq)
 instance Show DNA where
@@ -48,11 +49,24 @@ complement c = error $ c : " is not a nucleotide."
 reverseComplement :: DNA -> DNA
 reverseComplement (DNA dna) = DNA (map complement (reverse dna))
 
-frequentKmers :: DNA -> Integer -> IO Dataframe
-frequentKmers (DNA dna) k = undefined
+frequentKmers :: DNA -> Integer -> IO (Maybe Dataframe)
+frequentKmers (DNA dna) k =
+    let kmers = extractKmers (fromIntegral k) dna
+        counted = countKmers kmers []
+        sorted = sortBy (comparing (Down . snd)) counted
+     in makeKmerDf sorted
 
-{- (Map.toDescList counts)
-  where
-    kmers = [take (fromInteger k) (drop i dna) | i <- [0 .. length dna - (fromInteger k)]]
-    counts = foldl (\m kmer -> Map.insertWith (+) kmer 1 m) Map.empty kmers
--}
+extractKmers :: Int -> String -> [String]
+extractKmers k s
+    | k <= 0 = []
+    | length s < k = []
+    | otherwise = take k s : extractKmers k (tail s)
+
+countKmers :: [String] -> [(String, Int)] -> [(String, Int)]
+countKmers xs acc = foldl (flip increment) acc xs
+
+increment :: String -> [(String, Int)] -> [(String, Int)]
+increment kmer [] = [(kmer, 1)]
+increment kmer ((k, c) : rest)
+    | kmer == k = (k, c + 1) : rest
+    | otherwise = (k, c) : increment kmer rest

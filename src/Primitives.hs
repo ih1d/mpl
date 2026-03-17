@@ -59,8 +59,24 @@ applyReverseComplement [] = throwError $ RuntimeError "reverse_complement expect
 
 applyKmers :: [Value] -> InterpM Value
 applyKmers ((DNAV dna) : (IntV k) : _) = do
-    t <- io $ frequentKmers dna k
-    pure $ DataframeV t
+    mdf <- io $ frequentKmers dna k
+    case mdf of
+        Nothing -> throwError $ RuntimeError "kmers: failed to build dataframe"
+        Just df -> pure $ DataframeV df
 applyKmers ((DNAV _) : v : _) = throwError $ TypeError IntT (typeOf v)
 applyKmers (v : _) = throwError $ TypeError DNAT (typeOf v)
 applyKmers [] = throwError $ RuntimeError "kmers expects a DNA sequence and an integer"
+
+applyHead :: Dataframe -> Integer -> InterpM Value
+applyHead df i = do
+    mdf <- io $ headDf df i
+    case mdf of
+        Nothing -> throwError $ RuntimeError "head failed to capture those rows"
+        Just df' -> pure $ DataframeV df'
+
+applyTail :: Dataframe -> Integer -> InterpM Value
+applyTail df i = do
+    mdf <- io $ tailDf df i
+    case mdf of
+        Nothing -> throwError $ RuntimeError "head failed to capture those rows"
+        Just df' -> pure $ DataframeV df'

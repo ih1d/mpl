@@ -22,19 +22,12 @@ fileType fp =
             ".fastq" -> Fastq
             _ -> None
 
-data Env = Env
-    { variables :: [(Id, Expr)]
-    , types :: [(Id, Types)]
-    , plan :: [(Int, Plan)]
-    , nextRef :: Int
-    }
-
 data Plan
     = Read FilePath
     | Write FilePath
     | Filter Id Op Value
-    | Head Int
-    | Tail Int
+    | Head Integer
+    | Tail Integer
     | Select [Id]
     deriving (Eq)
 

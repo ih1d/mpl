@@ -30,6 +30,9 @@ void print_df(Dataframe* df);
 void free_df(Dataframe* df);
 Dataframe* filter_gt(Dataframe* df, const char* col_name, double threshold);
 Dataframe* filter_lt(Dataframe* df, const char* col_name, double threshold);
+Dataframe* make_kmer_df(char** kmers, int* counts, int n);
+Dataframe* head_df(Dataframe* df, int n);
+Dataframe* tail_df(Dataframe* df, int n);
 const char* runtime_last_error(void);
 
 #endif

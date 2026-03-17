@@ -1,0 +1,3 @@
+read "sample.csv" |> head 10 |> print
+
+read "sample.csv" |> tail 10 |> print

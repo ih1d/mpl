@@ -1,8 +1,8 @@
 module Main where
 
 import Eval
+import InterpM
 import Parser (parseLine)
-import Syntax
 import System.Environment (getArgs)
 import System.IO (BufferMode (NoBuffering), hSetBuffering, stdout)
 

@@ -82,6 +82,16 @@ parseWrite = do
     mplReserved "write"
     PlanE . Write <$> mplStringLiteral
 
+parseHead :: Parser Expr
+parseHead = do
+    mplReserved "head"
+    PlanE . Head <$> mplInteger
+
+parseTail :: Parser Expr
+parseTail = do
+    mplReserved "tail"
+    PlanE . Tail <$> mplInteger
+
 parseAtom :: Parser Expr
 parseAtom =
     parseTupleOrParens
@@ -93,6 +103,8 @@ parseAtom =
         <|> parseRNA
         <|> parseRead
         <|> parseWrite
+        <|> parseHead
+        <|> parseTail
         <|> parseVar
 
 parseApp :: Parser Expr

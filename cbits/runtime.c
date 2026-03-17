@@ -512,6 +512,75 @@ static Dataframe* df_take_rows(Dataframe* df, int* idx, int n) {
     return out;
 }
 
+/* ── make_kmer_df ────────────────────────────────────────────────── */
+
+Dataframe* make_kmer_df(char** kmers, int* counts, int n) {
+    if (n <= 0) {
+        snprintf(RUNTIME_ERROR, ERR_BUF, "make_kmer_df: empty data");
+        return NULL;
+    }
+
+    Column* columns = malloc(2 * sizeof(Column));
+
+    /* column 0: kmer (string) */
+    char** kmer_data = malloc(n * sizeof(char*));
+    for (int i = 0; i < n; i++) kmer_data[i] = strdup(kmers[i]);
+    columns[0] = (Column){COL_STRING, n, kmer_data};
+
+    /* column 1: count (int) */
+    int* count_data = malloc(n * sizeof(int));
+    memcpy(count_data, counts, n * sizeof(int));
+    columns[1] = (Column){COL_INT, n, count_data};
+
+    char** col_names = malloc(2 * sizeof(char*));
+    col_names[0] = strdup("kmer");
+    col_names[1] = strdup("count");
+
+    Dataframe* df = malloc(sizeof(Dataframe));
+    df->rows = n;
+    df->cols = 2;
+    df->column_names = col_names;
+    df->columns = columns;
+    return df;
+}
+
+/* ── head_df ─────────────────────────────────────────────────────── */
+
+Dataframe* head_df(Dataframe* df, int n) {
+    if (!df) {
+        snprintf(RUNTIME_ERROR, ERR_BUF, "head_df: NULL dataframe");
+        return NULL;
+    }
+    if (n < 0) n = 0;
+    if (n > df->rows) n = df->rows;
+
+    int* idx = malloc(n * sizeof(int));
+    for (int i = 0; i < n; i++) idx[i] = i;
+
+    Dataframe* out = df_take_rows(df, idx, n);
+    free(idx);
+    return out;
+}
+
+/* ── tail_df ─────────────────────────────────────────────────────── */
+
+Dataframe* tail_df(Dataframe* df, int n) {
+    if (!df) {
+        snprintf(RUNTIME_ERROR, ERR_BUF, "tail_df: NULL dataframe");
+        return NULL;
+    }
+    if (n < 0) n = 0;
+    if (n > df->rows) n = df->rows;
+
+    int start = df->rows - n;
+    int* idx = malloc(n * sizeof(int));
+    for (int i = 0; i < n; i++) idx[i] = start + i;
+
+    Dataframe* out = df_take_rows(df, idx, n);
+    free(idx);
+    return out;
+}
+
 /* ── filter_gt ───────────────────────────────────────────────────── */
 
 Dataframe* filter_gt(Dataframe* df, const char* col_name, double threshold) {

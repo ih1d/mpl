@@ -180,11 +180,12 @@ tc (PlanE p) =
     case p of
         Read _ -> pure DataframeT
         Write _ -> pure UnitT
+        Head _ -> pure DataframeT
+        Tail _ -> pure DataframeT
         _ -> undefined
 tc (App f args) = do
     case f of
         Var "print" -> pure UnitT
-        Var "read_csv" -> pure DataframeT
         Var "transcribe" -> pure RNAT
         Var "count_nucleotides" -> pure $ TupleT [IntT, IntT, IntT, IntT]
         Var "reverse_complement" -> pure DNAT
