@@ -14,13 +14,13 @@ data FileType
     | None
 
 fileType :: FilePath -> FileType
-fileType fp = 
+fileType fp =
     let ext = dropWhile (/= '.') fp
-    in case ext of
-        ".csv" -> Csv
-        ".fasta" -> Fasta
-        ".fastq" -> Fastq
-        _ -> None
+     in case ext of
+            ".csv" -> Csv
+            ".fasta" -> Fasta
+            ".fastq" -> Fastq
+            _ -> None
 data Env = Env
     { variables :: [(Id, Expr)]
     , types :: [(Id, Types)]

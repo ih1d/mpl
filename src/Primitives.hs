@@ -24,7 +24,7 @@ applyRead fp = do
                 Nothing -> throwError $ RuntimeError "couldn't construct Dataframe."
                 Just df -> pure $ DataframeV df
         _ -> throwError $ RuntimeError "not implemented for that file extension"
-        
+
 applyTranscribe :: [Value] -> InterpM Value
 applyTranscribe ((DNAV dna) : _) = do
     let rna = transcribe dna

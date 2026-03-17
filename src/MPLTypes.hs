@@ -50,6 +50,7 @@ reverseComplement (DNA dna) = DNA (map complement (reverse dna))
 
 frequentKmers :: DNA -> Integer -> IO Dataframe
 frequentKmers (DNA dna) k = undefined
+
 {- (Map.toDescList counts)
   where
     kmers = [take (fromInteger k) (drop i dna) | i <- [0 .. length dna - (fromInteger k)]]
