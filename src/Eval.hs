@@ -37,7 +37,6 @@ initEnv =
     , ("transcribe", Var "transcribe")
     , ("reverse_complement", Var "reverse_complement")
     , ("kmers", Var "kmers")
-    , ("write", Var "write")
     ]
 
 initTypeEnv :: [(Id, Types)]
@@ -53,8 +52,11 @@ initTypeEnv =
     , (show UnitT, UnitT)
     ]
 
+initPlan :: [Plan]
+initPlan = []
+
 initialEnv :: Env
-initialEnv = Env initEnv initTypeEnv
+initialEnv = Env initEnv initTypeEnv initPlan
 
 -- apply a function with scoped parameter bindings
 applyFn :: [Id] -> Expr -> [Expr] -> InterpM Value
@@ -175,7 +177,7 @@ eval (LetR f args body) = do
     pure $ ClosureV args body
 eval (Lam args body) = pure $ ClosureV args body
 eval (Tuple es) = TupleV <$> mapM eval es
-eval (Read fp) = applyRead fp
+eval (PlanE _) = undefined
 eval (App f args) = do
     case f of
         Lam params body -> applyFn params body args
@@ -197,9 +199,6 @@ eval (App f args) = do
                 Var "kmers" -> do
                     vals <- mapM eval args
                     applyKmers vals
-                Var "write" -> do
-                    vals <- mapM eval args
-                    applyWrite vals
                 _ -> do
                     fVal <- eval expr
                     case fVal of
@@ -210,4 +209,3 @@ eval (App f args) = do
             case fVal of
                 ClosureV params body -> applyFn params body args
                 _ -> throwError $ RuntimeError "application of non-function"
-eval _ = undefined

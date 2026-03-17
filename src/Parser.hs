@@ -72,8 +72,28 @@ parseTupleOrParens = do
         [e] -> e
         _ -> Tuple es
 
+parseRead :: Parser Expr
+parseRead = do
+    mplReserved "read"
+    PlanE . Read <$> mplStringLiteral
+
+parseWrite :: Parser Expr
+parseWrite = do
+    mplReserved "write"
+    PlanE . Write <$> mplStringLiteral
+
 parseAtom :: Parser Expr
-parseAtom = parseTupleOrParens <|> try parseDouble <|> parseInt <|> parseBool <|> parseStr <|> parseDNA <|> parseRNA <|> parseVar
+parseAtom =
+    parseTupleOrParens
+        <|> try parseDouble
+        <|> parseInt
+        <|> parseBool
+        <|> parseStr
+        <|> parseDNA
+        <|> parseRNA
+        <|> parseRead
+        <|> parseWrite
+        <|> parseVar
 
 parseApp :: Parser Expr
 parseApp = do
@@ -128,11 +148,6 @@ parseLam = do
     mplReservedOp "->"
     Lam args <$> parseExpr
 
-parseRead :: Parser Expr
-parseRead = do
-    mplReserved "read"
-    Read <$> mplStringLiteral
-
 parseExpr :: Parser Expr
 parseExpr =
     try parseLetR
@@ -140,7 +155,6 @@ parseExpr =
         <|> parseLetF
         <|> parseLam
         <|> parseIf
-        <|> parseRead
         <|> parseTerm
 
 parser :: String -> Either ParseError Expr

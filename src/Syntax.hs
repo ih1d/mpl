@@ -24,7 +24,25 @@ fileType fp =
 data Env = Env
     { variables :: [(Id, Expr)]
     , types :: [(Id, Types)]
+    , plan :: [Plan]
     }
+
+data Plan
+    = Read FilePath
+    | Write FilePath
+    | Filter Id Op Value
+    | Head Int
+    | Tail Int
+    | Select [Id]
+    deriving (Eq)
+
+instance Show Plan where
+    show (Read fp) = "read " ++ fp
+    show (Write fp) = "write " ++ fp
+    show (Filter col op val) = "filter " ++ col ++ " " ++ show op ++ " " ++ show val
+    show (Head i) = "head " ++ show i
+    show (Tail i) = "tail " ++ show i
+    show (Select cols) = "select " ++ unwords cols
 
 data Types
     = IntT
@@ -138,11 +156,7 @@ data Expr
     | Lam [Id] Expr
     | App Expr [Expr]
     | Tuple [Expr]
-    | Read FilePath
-    | Filter Id Op Value
-    | Head Int
-    | Tail Int
-    | Select [Id]
+    | PlanE Plan
     deriving (Eq)
 
 instance Show Expr where
@@ -157,11 +171,8 @@ instance Show Expr where
     show (Lam args e) = "lambda " ++ unwords args ++ " -> " ++ show e
     show (App e0 e1) = show e0 ++ " " ++ show e1
     show (Tuple es) = "(" ++ intercalate ", " (map show es) ++ ")"
-    show (Read fp) = "read " ++ fp
-    show (Filter col op val) = "filter " ++ col ++ " " ++ show op ++ " " ++ show val
-    show (Head i) = "head " ++ show i
-    show (Tail i) = "tail " ++ show i
-    show (Select cols) = "select " ++ unwords cols
+
+    show (PlanE p) = show p
 
 data Error
     = ParseE ParseError
