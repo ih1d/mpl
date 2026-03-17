@@ -19,10 +19,6 @@ newtype RNA = RNA String deriving (Eq)
 instance Show RNA where
     show (RNA rna) = rna
 
-newtype Protein = Protein String deriving (Eq)
-instance Show Protein where
-    show (Protein protein) = protein
-
 transcribe :: DNA -> RNA
 transcribe (DNA dna) = go dna []
   where
