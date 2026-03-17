@@ -23,6 +23,7 @@ typedef struct {
 
 /* Functions */
 Dataframe* read_csv(const char* file);
+void write_csv(const char* file_name, Dataframe* df);
 Dataframe* read_fasta(const char* file);
 Dataframe* read_fastq(const char* file);
 void print_df(Dataframe* df);

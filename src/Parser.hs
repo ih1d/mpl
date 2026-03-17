@@ -95,13 +95,6 @@ parseIf = do
     mplReserved "else"
     If cnd e0 <$> parseExpr
 
-parseLet :: Parser Expr
-parseLet = do
-    mplReserved "let"
-    v <- mplIdentifier
-    mplReservedOp "="
-    Let v <$> parseExpr
-
 parseLetIn :: Parser Expr
 parseLetIn = do
     mplReserved "let"
@@ -140,21 +133,14 @@ parseRead = do
     mplReserved "read"
     Read <$> mplStringLiteral
 
-parseWrite :: Parser Expr
-parseWrite = do
-    mplReserved "write"
-    Write <$> mplStringLiteral
-
 parseExpr :: Parser Expr
 parseExpr =
     try parseLetR
         <|> try parseLetIn
-        <|> try parseLetF
-        <|> parseLet
+        <|> parseLetF
         <|> parseLam
         <|> parseIf
         <|> parseRead
-        <|> parseWrite
         <|> parseTerm
 
 parser :: String -> Either ParseError Expr

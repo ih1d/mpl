@@ -416,6 +416,49 @@ Dataframe* read_fastq(const char* fp) {
     return df;
 }
 
+/* ── write_csv ───────────────────────────────────────────────────── */
+
+void write_csv(const char* file_name, Dataframe* df) {
+    if (!df) {
+        snprintf(RUNTIME_ERROR, ERR_BUF, "write_csv: NULL dataframe");
+        return;
+    }
+
+    FILE* f = fopen(file_name, "w");
+    if (!f) {
+        snprintf(RUNTIME_ERROR, ERR_BUF, "cannot open file %s for writing", file_name);
+        return;
+    }
+
+    /* write header */
+    for (int c = 0; c < df->cols; c++) {
+        if (c > 0) fputc(',', f);
+        fputs(df->column_names[c], f);
+    }
+    fputc('\n', f);
+
+    /* write rows */
+    for (int r = 0; r < df->rows; r++) {
+        for (int c = 0; c < df->cols; c++) {
+            if (c > 0) fputc(',', f);
+            switch (df->columns[c].column_type) {
+            case COL_INT:
+                fprintf(f, "%d", ((int*)df->columns[c].data)[r]);
+                break;
+            case COL_FLOAT:
+                fprintf(f, "%g", ((double*)df->columns[c].data)[r]);
+                break;
+            case COL_STRING:
+                fputs(((char**)df->columns[c].data)[r], f);
+                break;
+            }
+        }
+        fputc('\n', f);
+    }
+
+    fclose(f);
+}
+
 /* ── print_df ────────────────────────────────────────────────────── */
 
 void print_df(Dataframe* df) {

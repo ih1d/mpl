@@ -1,4 +1,2 @@
-let dna = ACGT
-let rna = ACGU
-print (transcribe dna)
-print rna
+let dna = ACGT in print (transcribe dna)
+let rna = ACGU in print rna

@@ -37,6 +37,7 @@ initEnv =
     , ("transcribe", Var "transcribe")
     , ("reverse_complement", Var "reverse_complement")
     , ("kmers", Var "kmers")
+    , ("write", Var "write")
     ]
 
 initTypeEnv :: [(Id, Types)]
@@ -163,9 +164,6 @@ eval (If cnd e0 e1) = do
         BoolV False -> eval e1
         _ -> throwError $ RuntimeError "if expects bool"
 eval (Var v) = lookupVar v >>= eval
-eval (Let v e) = do
-    bindVar v e
-    eval e
 eval (LetI v e0 e1) = do
     bindVar v e0
     eval e1
@@ -199,6 +197,9 @@ eval (App f args) = do
                 Var "kmers" -> do
                     vals <- mapM eval args
                     applyKmers vals
+                Var "write" -> do
+                    vals <- mapM eval args
+                    applyWrite vals
                 _ -> do
                     fVal <- eval expr
                     case fVal of

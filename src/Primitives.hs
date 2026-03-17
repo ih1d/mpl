@@ -25,6 +25,14 @@ applyRead fp = do
                 Just df -> pure $ DataframeV df
         _ -> throwError $ RuntimeError "not implemented for that file extension"
 
+applyWrite :: [Value] -> InterpM Value
+applyWrite ((StringV fp) : (DataframeV df) : _) = do
+    io $ writeCsv fp df
+    pure $ UnitV ()
+applyWrite ((StringV _) : v : _) = throwError $ TypeError DataframeT (typeOf v)
+applyWrite (v : _) = throwError $ TypeError StringT (typeOf v)
+applyWrite [] = throwError $ RuntimeError "write expects a file path and a dataframe"
+
 applyTranscribe :: [Value] -> InterpM Value
 applyTranscribe ((DNAV dna) : _) = do
     let rna = transcribe dna

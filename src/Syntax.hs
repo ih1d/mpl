@@ -132,7 +132,6 @@ data Expr
     | BinOp Op Expr Expr
     | If Expr Expr Expr
     | Var Id
-    | Let Id Expr
     | LetI Id Expr Expr
     | LetF Id [Id] Expr
     | LetR Id [Id] Expr
@@ -140,7 +139,6 @@ data Expr
     | App Expr [Expr]
     | Tuple [Expr]
     | Read FilePath
-    | Write FilePath
     | Filter Id Op Value
     | Head Int
     | Tail Int
@@ -153,7 +151,6 @@ instance Show Expr where
     show (BinOp op e0 e1) = show e0 ++ " " ++ show op ++ " " ++ show e1
     show (If cnd e0 e1) = "if " ++ show cnd ++ " then " ++ show e0 ++ " else " ++ show e1
     show (Var v) = v
-    show (Let v e) = "let " ++ v ++ " = " ++ show e
     show (LetI v e0 e1) = "let " ++ v ++ " = " ++ show e0 ++ " in " ++ show e1
     show (LetF f args e) = "let " ++ f ++ " " ++ unwords args ++ " = " ++ show e
     show (LetR f args e) = "let rec " ++ f ++ " " ++ unwords args ++ " = " ++ show e
@@ -161,7 +158,6 @@ instance Show Expr where
     show (App e0 e1) = show e0 ++ " " ++ show e1
     show (Tuple es) = "(" ++ intercalate ", " (map show es) ++ ")"
     show (Read fp) = "read " ++ fp
-    show (Write fp) = "write " ++ fp
     show (Filter col op val) = "filter " ++ col ++ " " ++ show op ++ " " ++ show val
     show (Head i) = "head " ++ show i
     show (Tail i) = "tail " ++ show i

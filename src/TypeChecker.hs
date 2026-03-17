@@ -159,12 +159,6 @@ tc (Var v)
         , "reverse_complement"
         , "kmers"
         ]
-tc (Let v e) =
-    if contains v e
-        then throwError $ NotInScope v e
-        else do
-            bindVar v e
-            tc e
 tc (LetI v e0 e1)
     | contains v e0 = throwError $ NotInScope v e0
     | otherwise = do
@@ -182,8 +176,7 @@ tc (LetR f args body) = do
     pure FunT
 tc (Lam _ _) = pure FunT
 tc (Tuple es) = TupleT <$> mapM tc es
-tc (Read _) = pure UnitT
-tc (Write _) = pure UnitT
+tc (Read _) = pure DataframeT
 tc (App f args) = do
     case f of
         Var "print" -> pure UnitT
@@ -192,6 +185,7 @@ tc (App f args) = do
         Var "count_nucleotides" -> pure $ TupleT [IntT, IntT, IntT, IntT]
         Var "reverse_complement" -> pure DNAT
         Var "kmers" -> pure DataframeT
+        Var "write" -> pure UnitT
         Lam vars body -> do
             mapM_ (uncurry bindVar) (zip vars args)
             tc body
@@ -207,7 +201,6 @@ contains name (UnOp _ e) = contains name e
 contains name (BinOp _ e0 e1) = contains name e0 || contains name e1
 contains name (If cnd thn els) = contains name cnd || contains name thn || contains name els
 contains name (Var n) = name == n
-contains name (Let n e) = name == n || contains name e
 contains name (LetI n e0 e1) = name == n || contains name e0 || contains name e1
 contains name (LetF n args e) = name == n || elem name args || contains name e
 contains _ (LetR{}) = False
@@ -215,5 +208,4 @@ contains name (Lam args e) = elem name args || contains name e
 contains name (App f args) = contains name f || any (contains name) args
 contains name (Tuple exprs) = any (contains name) exprs
 contains _ (Read _) = False
-contains _ (Write _) = False
 contains _ _ = False
