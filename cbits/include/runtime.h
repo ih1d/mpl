@@ -28,6 +28,8 @@ Dataframe* read_fasta(const char* file);
 Dataframe* read_fastq(const char* file);
 void print_df(Dataframe* df);
 void free_df(Dataframe* df);
+Dataframe* filter_gt(Dataframe* df, const char* col_name, double threshold);
+Dataframe* filter_lt(Dataframe* df, const char* col_name, double threshold);
 const char* runtime_last_error(void);
 
 #endif

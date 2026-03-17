@@ -459,6 +459,135 @@ void write_csv(const char* file_name, Dataframe* df) {
     fclose(f);
 }
 
+/* ── filter helpers ──────────────────────────────────────────────── */
+
+/* Find the index of a column by name.  Returns -1 if not found. */
+static int find_column(Dataframe* df, const char* col_name) {
+    for (int c = 0; c < df->cols; c++) {
+        if (strcmp(df->column_names[c], col_name) == 0) return c;
+    }
+    return -1;
+}
+
+/* Build a new dataframe containing only the rows at the given indices. */
+static Dataframe* df_take_rows(Dataframe* df, int* idx, int n) {
+    Column* columns = malloc(df->cols * sizeof(Column));
+    char** col_names = malloc(df->cols * sizeof(char*));
+
+    for (int c = 0; c < df->cols; c++) {
+        col_names[c] = strdup(df->column_names[c]);
+        columns[c].column_type = df->columns[c].column_type;
+        columns[c].col_rows = n;
+
+        switch (df->columns[c].column_type) {
+        case COL_INT: {
+            int* src = (int*)df->columns[c].data;
+            int* dst = malloc(n * sizeof(int));
+            for (int i = 0; i < n; i++) dst[i] = src[idx[i]];
+            columns[c].data = dst;
+            break;
+        }
+        case COL_FLOAT: {
+            double* src = (double*)df->columns[c].data;
+            double* dst = malloc(n * sizeof(double));
+            for (int i = 0; i < n; i++) dst[i] = src[idx[i]];
+            columns[c].data = dst;
+            break;
+        }
+        case COL_STRING: {
+            char** src = (char**)df->columns[c].data;
+            char** dst = malloc(n * sizeof(char*));
+            for (int i = 0; i < n; i++) dst[i] = strdup(src[idx[i]]);
+            columns[c].data = dst;
+            break;
+        }
+        }
+    }
+
+    Dataframe* out = malloc(sizeof(Dataframe));
+    out->rows = n;
+    out->cols = df->cols;
+    out->column_names = col_names;
+    out->columns = columns;
+    return out;
+}
+
+/* ── filter_gt ───────────────────────────────────────────────────── */
+
+Dataframe* filter_gt(Dataframe* df, const char* col_name, double threshold) {
+    if (!df) {
+        snprintf(RUNTIME_ERROR, ERR_BUF, "filter_gt: NULL dataframe");
+        return NULL;
+    }
+
+    int ci = find_column(df, col_name);
+    if (ci < 0) {
+        snprintf(RUNTIME_ERROR, ERR_BUF, "filter_gt: column '%s' not found", col_name);
+        return NULL;
+    }
+
+    ColType ct = df->columns[ci].column_type;
+    if (ct != COL_INT && ct != COL_FLOAT) {
+        snprintf(RUNTIME_ERROR, ERR_BUF, "filter_gt: column '%s' is not numeric", col_name);
+        return NULL;
+    }
+
+    int* idx = malloc(df->rows * sizeof(int));
+    int n = 0;
+
+    if (ct == COL_INT) {
+        int* data = (int*)df->columns[ci].data;
+        for (int r = 0; r < df->rows; r++)
+            if ((double)data[r] > threshold) idx[n++] = r;
+    } else {
+        double* data = (double*)df->columns[ci].data;
+        for (int r = 0; r < df->rows; r++)
+            if (data[r] > threshold) idx[n++] = r;
+    }
+
+    Dataframe* out = df_take_rows(df, idx, n);
+    free(idx);
+    return out;
+}
+
+/* ── filter_lt ───────────────────────────────────────────────────── */
+
+Dataframe* filter_lt(Dataframe* df, const char* col_name, double threshold) {
+    if (!df) {
+        snprintf(RUNTIME_ERROR, ERR_BUF, "filter_lt: NULL dataframe");
+        return NULL;
+    }
+
+    int ci = find_column(df, col_name);
+    if (ci < 0) {
+        snprintf(RUNTIME_ERROR, ERR_BUF, "filter_lt: column '%s' not found", col_name);
+        return NULL;
+    }
+
+    ColType ct = df->columns[ci].column_type;
+    if (ct != COL_INT && ct != COL_FLOAT) {
+        snprintf(RUNTIME_ERROR, ERR_BUF, "filter_lt: column '%s' is not numeric", col_name);
+        return NULL;
+    }
+
+    int* idx = malloc(df->rows * sizeof(int));
+    int n = 0;
+
+    if (ct == COL_INT) {
+        int* data = (int*)df->columns[ci].data;
+        for (int r = 0; r < df->rows; r++)
+            if ((double)data[r] < threshold) idx[n++] = r;
+    } else {
+        double* data = (double*)df->columns[ci].data;
+        for (int r = 0; r < df->rows; r++)
+            if (data[r] < threshold) idx[n++] = r;
+    }
+
+    Dataframe* out = df_take_rows(df, idx, n);
+    free(idx);
+    return out;
+}
+
 /* ── print_df ────────────────────────────────────────────────────── */
 
 void print_df(Dataframe* df) {

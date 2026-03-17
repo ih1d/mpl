@@ -21,10 +21,12 @@ fileType fp =
             ".fasta" -> Fasta
             ".fastq" -> Fastq
             _ -> None
+
 data Env = Env
     { variables :: [(Id, Expr)]
     , types :: [(Id, Types)]
-    , plan :: [Plan]
+    , plan :: [(Int, Plan)]
+    , nextRef :: Int
     }
 
 data Plan

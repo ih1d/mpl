@@ -1,1 +1,0 @@
-let df = read "data/sample.csv" in print df

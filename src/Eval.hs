@@ -52,11 +52,11 @@ initTypeEnv =
     , (show UnitT, UnitT)
     ]
 
-initPlan :: [Plan]
+initPlan :: [(Int, Plan)]
 initPlan = []
 
 initialEnv :: Env
-initialEnv = Env initEnv initTypeEnv initPlan
+initialEnv = Env initEnv initTypeEnv initPlan 1
 
 -- apply a function with scoped parameter bindings
 applyFn :: [Id] -> Expr -> [Expr] -> InterpM Value
@@ -75,7 +75,7 @@ eval (UnOp Not (Const (BoolV b))) = pure $ BoolV (not b)
 eval (UnOp Sub (Const (IntV i))) = pure $ IntV (-i)
 eval (UnOp Sub (Const (DoubleV d))) = pure $ DoubleV (-d)
 eval (UnOp op _) = throwError $ RuntimeError ("not unary operator: " ++ show op)
-eval (BinOp Pipe _ _) = undefined
+eval (BinOp Pipe e0 e1) = eval e0 >> eval e1
 eval (BinOp op e0 e1) = do
     (v0, v1) <- (,) <$> eval e0 <*> eval e1
     case op of
@@ -177,7 +177,13 @@ eval (LetR f args body) = do
     pure $ ClosureV args body
 eval (Lam args body) = pure $ ClosureV args body
 eval (Tuple es) = TupleV <$> mapM eval es
-eval (PlanE _) = undefined
+eval (PlanE p) =
+    case p of
+        Read _ -> do
+            bindPlan p
+            pure $ UnitV ()
+        Write fp -> execPlans >>= applyWrite fp
+        _ -> undefined
 eval (App f args) = do
     case f of
         Lam params body -> applyFn params body args
@@ -209,3 +215,17 @@ eval (App f args) = do
             case fVal of
                 ClosureV params body -> applyFn params body args
                 _ -> throwError $ RuntimeError "application of non-function"
+
+execPlans :: InterpM Value
+execPlans = do
+    plans <- getPlan
+    nr <- (\x -> x - 1) <$> getNextRef
+    execute plans nr (UnitV ())
+  where
+    execute _ 0 val = pure val
+    execute plans nr _ = do
+        case lookup nr plans of
+            Nothing -> throwError $ RuntimeError "failed while building execution plan"
+            Just p -> exec p >>= execute plans (nr - 1)
+    exec (Read fp) = applyRead fp
+    exec _ = undefined

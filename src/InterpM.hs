@@ -19,8 +19,11 @@ getEnv = gets variables
 getTypeEnv :: InterpM [(Id, Types)]
 getTypeEnv = gets types
 
-getPlan :: InterpM [Plan]
+getPlan :: InterpM [(Int, Plan)]
 getPlan = gets plan
+
+getNextRef :: InterpM Int
+getNextRef = gets nextRef
 
 lookupVar :: Id -> InterpM Expr
 lookupVar var = do
@@ -39,17 +42,24 @@ lookupType t = do
 bindVar :: Id -> Expr -> InterpM ()
 bindVar var expr = do
     env <- getEnv
-    Env ((var, expr) : env) <$> getTypeEnv <*> getPlan >>= put
+    Env ((var, expr) : env) <$> getTypeEnv <*> getPlan <*> getNextRef >>= put
 
 bindType :: Id -> Types -> InterpM ()
 bindType tname ty = do
     tyEnv <- getTypeEnv
-    Env <$> getEnv <*> pure ((tname, ty) : tyEnv) <*> getPlan >>= put
+    Env <$> getEnv <*> pure ((tname, ty) : tyEnv) <*> getPlan <*> getNextRef >>= put
 
 bindPlan :: Plan -> InterpM ()
 bindPlan p = do
     plans <- getPlan
-    Env <$> getEnv <*> getTypeEnv <*> pure (p : plans) >>= put
+    nr <- getNextRef
+    updateNextRef
+    Env <$> getEnv <*> getTypeEnv <*> pure ((nr, p) : plans) <*> getNextRef >>= put
+
+updateNextRef :: InterpM ()
+updateNextRef = do
+    nr <- (+ 1) <$> getNextRef
+    Env <$> getEnv <*> getTypeEnv <*> getPlan <*> pure nr >>= put
 
 io :: IO a -> InterpM a
 io = liftIO

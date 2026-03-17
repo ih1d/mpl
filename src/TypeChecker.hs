@@ -179,6 +179,7 @@ tc (Tuple es) = TupleT <$> mapM tc es
 tc (PlanE p) =
     case p of
         Read _ -> pure DataframeT
+        Write _ -> pure UnitT
         _ -> undefined
 tc (App f args) = do
     case f of

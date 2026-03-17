@@ -25,13 +25,16 @@ applyRead fp = do
                 Just df -> pure $ DataframeV df
         _ -> throwError $ RuntimeError "not implemented for that file extension"
 
-applyWrite :: [Value] -> InterpM Value
-applyWrite ((StringV fp) : (DataframeV df) : _) = do
-    io $ writeCsv fp df
+applyWrite :: FilePath -> Value -> InterpM Value
+applyWrite fp (DataframeV df) =
+    case fileType fp of
+        Csv -> do
+            io $ writeCsv fp df
+            pure $ UnitV ()
+        _ -> undefined
+applyWrite fp val = do
+    io $ writeFile fp (show val)
     pure $ UnitV ()
-applyWrite ((StringV _) : v : _) = throwError $ TypeError DataframeT (typeOf v)
-applyWrite (v : _) = throwError $ TypeError StringT (typeOf v)
-applyWrite [] = throwError $ RuntimeError "write expects a file path and a dataframe"
 
 applyTranscribe :: [Value] -> InterpM Value
 applyTranscribe ((DNAV dna) : _) = do
