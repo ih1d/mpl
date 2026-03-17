@@ -31,7 +31,6 @@ executable mpl
         Lexer
         MPLTypes
         Dataframe
-        CodeGen
     build-depends:    base ^>=4.18.3.0
                     , containers
                     , mtl
@@ -42,7 +41,5 @@ executable mpl
     if os(linux)
         build-depends:
             cuda
-    pkgconfig-depends:
-        arrow-glib
     c-sources:
-        cbits/mpl_arrow_glib.c
+        cbits/runtime.c

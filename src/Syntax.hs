@@ -7,23 +7,9 @@ import Text.Parsec (ParseError)
 
 type Id = String
 
-data Backend
-    = NVIDIA
-    | OpenCL
-    | CPU
-    | Auto
-    deriving (Eq)
-
-instance Show Backend where
-    show NVIDIA = "nvidia"
-    show OpenCL = "opencl"
-    show CPU = "cpu"
-    show Auto = "auto"
-
 data Env = Env
     { variables :: [(Id, Expr)]
     , types :: [(Id, Types)]
-    , backend :: Backend
     }
 
 data Types
@@ -139,7 +125,12 @@ data Expr
     | Lam [Id] Expr
     | App Expr [Expr]
     | Tuple [Expr]
-    | Use Backend
+    | Read FilePath
+    | Write FilePath
+    | Filter Id Op Value
+    | Head Int
+    | Tail Int
+    | Select [Id]
     deriving (Eq)
 
 instance Show Expr where
@@ -155,7 +146,12 @@ instance Show Expr where
     show (Lam args e) = "lambda " ++ unwords args ++ " -> " ++ show e
     show (App e0 e1) = show e0 ++ " " ++ show e1
     show (Tuple es) = "(" ++ intercalate ", " (map show es) ++ ")"
-    show (Use b) = "use " ++ show b
+    show (Read fp) = "read " ++ fp
+    show (Write fp) = "write " ++ fp
+    show (Filter col op val) = "filter " ++ col ++ " " ++ show op ++ " " ++ show val
+    show (Head i) = "head " ++ show i
+    show (Tail i) = "tail " ++ show i
+    show (Select cols) = "select " ++ unwords cols
 
 data Error
     = ParseE ParseError

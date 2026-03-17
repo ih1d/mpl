@@ -182,6 +182,8 @@ tc (LetR f args body) = do
     pure FunT
 tc (Lam _ _) = pure FunT
 tc (Tuple es) = TupleT <$> mapM tc es
+tc (Read _) = pure UnitT
+tc (Write _) = pure UnitT
 tc (App f args) = do
     case f of
         Var "print" -> pure UnitT
@@ -189,7 +191,6 @@ tc (App f args) = do
         Var "transcribe" -> pure RNAT
         Var "count_nucleotides" -> pure $ TupleT [IntT, IntT, IntT, IntT]
         Var "reverse_complement" -> pure DNAT
-        Var "filter" -> pure DataframeT
         Var "kmers" -> pure DataframeT
         Lam vars body -> do
             mapM_ (uncurry bindVar) (zip vars args)
@@ -198,7 +199,7 @@ tc (App f args) = do
             e <- lookupVar v
             tc (App e args)
         e -> tc e >>= throwError . TypeError FunT
-tc (Use _) = pure UnitT
+tc _ = undefined
 
 contains :: Id -> Expr -> Bool
 contains _ (Const _) = False
@@ -213,4 +214,6 @@ contains _ (LetR{}) = False
 contains name (Lam args e) = elem name args || contains name e
 contains name (App f args) = contains name f || any (contains name) args
 contains name (Tuple exprs) = any (contains name) exprs
-contains _ (Use _) = False
+contains _ (Read _) = False
+contains _ (Write _) = False
+contains _ _ = False

@@ -135,19 +135,27 @@ parseLam = do
     mplReservedOp "->"
     Lam args <$> parseExpr
 
-parseUse :: Parser Expr
-parseUse = do
-    mplReserved "use"
-    Use <$> parseBackend
-  where
-    parseBackend =
-        (NVIDIA <$ mplSymbol "nvidia")
-            <|> (OpenCL <$ mplSymbol "opencl")
-            <|> (CPU <$ mplSymbol "cpu")
-            <|> (Auto <$ mplSymbol "auto")
+parseRead :: Parser Expr
+parseRead = do
+    mplReserved "read"
+    Read <$> mplStringLiteral
+
+parseWrite :: Parser Expr
+parseWrite = do
+    mplReserved "write"
+    Write <$> mplStringLiteral
 
 parseExpr :: Parser Expr
-parseExpr = parseUse <|> try parseLetR <|> try parseLetIn <|> try parseLetF <|> parseLet <|> parseLam <|> parseIf <|> parseTerm
+parseExpr =
+    try parseLetR
+        <|> try parseLetIn
+        <|> try parseLetF
+        <|> parseLet
+        <|> parseLam
+        <|> parseIf
+        <|> parseRead
+        <|> parseWrite
+        <|> parseTerm
 
 parser :: String -> Either ParseError Expr
 parser = parse (mplWhiteSpace *> parseExpr <* eof) "mpl"

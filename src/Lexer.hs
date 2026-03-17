@@ -53,10 +53,12 @@ mplDef =
         , "false"
         , "rec"
         , "lambda"
-        , "type"
-        , "match"
-        , "with"
-        , "use"
+        , "read"
+        , "write"
+        , "filter"
+        , "head"
+        , "tail"
+        , "select"
         ]
 
 mplReserved :: String -> Parser ()

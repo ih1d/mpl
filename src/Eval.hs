@@ -36,8 +36,6 @@ initEnv =
     , ("count_nucleotides", Var "count_nucleotides")
     , ("transcribe", Var "transcribe")
     , ("reverse_complement", Var "reverse_complement")
-    , ("read_csv", Var "read_csv")
-    , ("filter", Var "filter")
     , ("kmers", Var "kmers")
     ]
 
@@ -55,7 +53,7 @@ initTypeEnv =
     ]
 
 initialEnv :: Env
-initialEnv = Env initEnv initTypeEnv Auto
+initialEnv = Env initEnv initTypeEnv
 
 -- apply a function with scoped parameter bindings
 applyFn :: [Id] -> Expr -> [Expr] -> InterpM Value
@@ -74,21 +72,7 @@ eval (UnOp Not (Const (BoolV b))) = pure $ BoolV (not b)
 eval (UnOp Sub (Const (IntV i))) = pure $ IntV (-i)
 eval (UnOp Sub (Const (DoubleV d))) = pure $ DoubleV (-d)
 eval (UnOp op _) = throwError $ RuntimeError ("not unary operator: " ++ show op)
-eval (BinOp Pipe e0 e1) = do
-    v0 <- eval e0
-    case v0 of
-        DataframeV _ ->
-            case e1 of
-                (App (Var "filter") args) ->
-                    eval (App (Var "filter") (Const v0 : args))
-                (App (Var "print") args) ->
-                    eval (App (Var "print") (Const v0 : args))
-                (Var "print") ->
-                    eval (App (Var "print") [Const v0])
-                (Var "filter") ->
-                    eval (App (Var "filter") [Const v0])
-                _ -> throwError $ RuntimeError ("unsupported pipe target: " ++ show e1)
-        v -> throwError $ RuntimeError ("|> expects a dataframe, got: " ++ show v)
+eval (BinOp Pipe _ _) = undefined
 eval (BinOp op e0 e1) = do
     (v0, v1) <- (,) <$> eval e0 <*> eval e1
     case op of
@@ -214,9 +198,6 @@ eval (App f args) = do
                 Var "reverse_complement" -> do
                     vals <- mapM eval args
                     applyReverseComplement vals
-                Var "filter" -> do
-                    vals <- mapM eval args
-                    applyFilter vals
                 Var "kmers" -> do
                     vals <- mapM eval args
                     applyKmers vals
@@ -230,6 +211,4 @@ eval (App f args) = do
             case fVal of
                 ClosureV params body -> applyFn params body args
                 _ -> throwError $ RuntimeError "application of non-function"
-eval (Use b) = do
-    setBackend b
-    pure (UnitV ())
+eval _ = undefined
