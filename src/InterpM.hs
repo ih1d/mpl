@@ -50,6 +50,6 @@ bindPlan :: Plan -> InterpM ()
 bindPlan p = do
     plans <- getPlan
     Env <$> getEnv <*> getTypeEnv <*> pure (p : plans) >>= put
-    
+
 io :: IO a -> InterpM a
 io = liftIO

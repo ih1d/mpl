@@ -171,7 +171,6 @@ instance Show Expr where
     show (Lam args e) = "lambda " ++ unwords args ++ " -> " ++ show e
     show (App e0 e1) = show e0 ++ " " ++ show e1
     show (Tuple es) = "(" ++ intercalate ", " (map show es) ++ ")"
-
     show (PlanE p) = show p
 
 data Error
