@@ -1,12 +1,26 @@
 module Syntax where
 
 import Data.List (intercalate)
-import Dataframe (Table)
+import Dataframe (Dataframe)
 import MPLTypes
 import Text.Parsec (ParseError)
 
 type Id = String
 
+data FileType
+    = Csv
+    | Fasta
+    | Fastq
+    | None
+
+fileType :: FilePath -> FileType
+fileType fp = 
+    let ext = dropWhile (/= '.') fp
+    in case ext of
+        ".csv" -> Csv
+        ".fasta" -> Fasta
+        ".fastq" -> Fastq
+        _ -> None
 data Env = Env
     { variables :: [(Id, Expr)]
     , types :: [(Id, Types)]
@@ -49,7 +63,7 @@ data Value
     | ClosureV [Id] Expr
     | DNAV DNA
     | RNAV RNA
-    | DataframeV Table
+    | DataframeV Dataframe
     deriving (Eq)
 
 typeOf :: Value -> Types

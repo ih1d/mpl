@@ -177,6 +177,7 @@ eval (LetR f args body) = do
     pure $ ClosureV args body
 eval (Lam args body) = pure $ ClosureV args body
 eval (Tuple es) = TupleV <$> mapM eval es
+eval (Read fp) = applyRead fp
 eval (App f args) = do
     case f of
         Lam params body -> applyFn params body args
@@ -186,9 +187,6 @@ eval (App f args) = do
                 Var "print" -> do
                     vals <- mapM eval args
                     applyPrint vals
-                Var "read_csv" -> do
-                    vals <- mapM eval args
-                    applyReadCsv vals
                 Var "transcribe" -> do
                     vals <- mapM eval args
                     applyTranscribe vals

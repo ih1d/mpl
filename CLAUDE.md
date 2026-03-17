@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-MPL (El MegaProbe Language) is a programming language for high-performance genomics computation. It is written in Haskell and includes both an interpreter (REPL + file execution) and an in-progress CUDA code generator. The language has built-in support for DNA/RNA types and dataframe operations via Apache Arrow (through C FFI).
+MPL (El MegaProbe Language) is a programming language for high-performance genomics computation. It is written in Haskell and includes both an interpreter (REPL + file execution) and an in-progress CUDA code generator. The language has built-in support for DNA/RNA types and dataframe operations via a custom C runtime (`cbits/runtime.c`) that handles CSV, FASTA, and FASTQ parsing.
 
 ## Build & Run
 
@@ -14,7 +14,7 @@ cabal exec mpl                 # Launch the REPL
 cabal exec mpl -- file.probe   # Run a .probe file
 ```
 
-Requires GHC (installed via ghcup) and `pkg-config` with `arrow-glib` (and `arrow-cuda-glib` on Linux).
+Requires GHC (installed via ghcup). No external C library dependencies — the C runtime (`cbits/runtime.c`) is self-contained. On Linux, the `cuda` Haskell package is also required.
 
 ## Linting & Formatting
 
@@ -44,9 +44,16 @@ Key modules in `src/`:
 - **TypeChecker.hs** — Expression type checker (`tc :: Expr -> InterpM Types`). Runs before evaluation.
 - **Eval.hs** — Expression evaluator. `runEval` parses+typechecks+evaluates a string. `initialEnv` sets up built-in bindings.
 - **Primitives.hs** — Built-in function implementations (`print`, `read_csv`, `transcribe`, `count_nucleotides`, `reverse_complement`).
-- **Dataframe.hs** — FFI bindings to Apache Arrow C library (`cbits/mpl_arrow_glib.c`) for CSV reading and table display.
-- **CodeGen.hs** — CUDA code generation (early stage, mostly `undefined`).
+- **Dataframe.hs** — FFI bindings to the C runtime (`cbits/runtime.c`) for CSV/FASTA/FASTQ reading and dataframe operations.
 - **Main.hs** — Entry point. File mode processes lines sequentially; REPL mode loops with persistent environment.
+
+## C Runtime (`cbits/`)
+
+- **`include/runtime.h`** — Defines `Dataframe`, `Column`, and `ColType` (INT, FLOAT, STRING) types.
+- **`runtime.c`** — Self-contained implementations of `read_csv`, `read_fasta`, `read_fastq`, `free_dataframe`, and `runtime_last_error`. No external library dependencies.
+  - `read_csv` auto-detects column types (int/double/string) from data.
+  - `read_fasta` produces columns: `id`, `description`, `sequence`.
+  - `read_fastq` produces columns: `id`, `description`, `sequence`, `quality`.
 
 ## Language Features
 

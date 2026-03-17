@@ -25,6 +25,8 @@ typedef struct {
 Dataframe* read_csv(const char* file);
 Dataframe* read_fasta(const char* file);
 Dataframe* read_fastq(const char* file);
-void free_dataframe(Dataframe* df);
+void print_df(Dataframe* df);
+void free_df(Dataframe* df);
+const char* runtime_last_error(void);
 
 #endif

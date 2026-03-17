@@ -1,5 +1,0 @@
-(* YA CORRE *)
-let df = read_csv "data/sample.csv" |> filter "total_reads" (lambda x -> x == 890) |> print
-
-(* TAMBIEN CREO *)
-let df = read_csv "data/sample.csv" in df |> filter "total_reads" (lambda x -> x > 100) |> print
