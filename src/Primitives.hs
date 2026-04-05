@@ -1,37 +1,21 @@
 module Primitives where
 
 import Control.Monad.Except (throwError)
-import Dataframe
 import InterpM
 import MPLTypes
 import Syntax
-import Prelude hiding (readFile)
 
 applyPrint :: [Value] -> InterpM Value
-applyPrint ((DataframeV df) : vals) = do
-    io $ printDf df
-    applyPrint vals
 applyPrint vals = do
     io $ mapM_ print vals
     pure $ UnitV ()
 
 applyRead :: FilePath -> InterpM Value
 applyRead fp = do
-    case fileType fp of
-        Csv -> do
-            mdf <- io $ readCsv fp
-            case mdf of
-                Nothing -> throwError $ RuntimeError "couldn't construct Dataframe."
-                Just df -> pure $ DataframeV df
-        _ -> throwError $ RuntimeError "not implemented for that file extension"
+    mdf <- io $ readFile fp
+    pure $ StringV mdf
 
 applyWrite :: FilePath -> Value -> InterpM Value
-applyWrite fp (DataframeV df) =
-    case fileType fp of
-        Csv -> do
-            io $ writeCsv fp df
-            pure $ UnitV ()
-        _ -> undefined
 applyWrite fp val = do
     io $ writeFile fp (show val)
     pure $ UnitV ()
@@ -56,27 +40,3 @@ applyReverseComplement ((DNAV dna) : _) = do
     pure $ DNAV dna'
 applyReverseComplement (v : _) = throwError $ TypeError DNAT (typeOf v)
 applyReverseComplement [] = throwError $ RuntimeError "reverse_complement expects 1 argument"
-
-applyKmers :: [Value] -> InterpM Value
-applyKmers ((DNAV dna) : (IntV k) : _) = do
-    mdf <- io $ frequentKmers dna k
-    case mdf of
-        Nothing -> throwError $ RuntimeError "kmers: failed to build dataframe"
-        Just df -> pure $ DataframeV df
-applyKmers ((DNAV _) : v : _) = throwError $ TypeError IntT (typeOf v)
-applyKmers (v : _) = throwError $ TypeError DNAT (typeOf v)
-applyKmers [] = throwError $ RuntimeError "kmers expects a DNA sequence and an integer"
-
-applyHead :: Dataframe -> Integer -> InterpM Value
-applyHead df i = do
-    mdf <- io $ headDf df i
-    case mdf of
-        Nothing -> throwError $ RuntimeError "head failed to capture those rows"
-        Just df' -> pure $ DataframeV df'
-
-applyTail :: Dataframe -> Integer -> InterpM Value
-applyTail df i = do
-    mdf <- io $ tailDf df i
-    case mdf of
-        Nothing -> throwError $ RuntimeError "head failed to capture those rows"
-        Just df' -> pure $ DataframeV df'

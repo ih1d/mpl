@@ -52,11 +52,8 @@ initTypeEnv =
     , (show UnitT, UnitT)
     ]
 
-initPlan :: [(Int, Plan)]
-initPlan = []
-
 initialEnv :: Env
-initialEnv = Env initEnv initTypeEnv initPlan 1
+initialEnv = Env initEnv initTypeEnv 1
 
 -- apply a function with scoped parameter bindings
 applyFn :: [Id] -> Expr -> [Expr] -> InterpM Value
@@ -71,15 +68,6 @@ applyFn params body args = do
 -- evaluator
 eval :: Expr -> InterpM Value
 eval (Const i) = pure i
-eval (UnOp Not (Const (BoolV b))) = pure $ BoolV (not b)
-eval (UnOp Sub (Const (IntV i))) = pure $ IntV (-i)
-eval (UnOp Sub (Const (DoubleV d))) = pure $ DoubleV (-d)
-eval (UnOp op _) = throwError $ RuntimeError ("not unary operator: " ++ show op)
-eval (BinOp Pipe e0 e1) = do
-    case e1 of
-        Var "print" -> eval (App (Var "print") [e0])
-        (App (Var "print") args) -> eval $ App (Var "print") (e0 : args)
-        _ -> undefined
 eval (BinOp op e0 e1) = do
     (v0, v1) <- (,) <$> eval e0 <*> eval e1
     case op of
@@ -118,15 +106,6 @@ eval (BinOp op e0 e1) = do
                 (DoubleV d, IntV i) -> pure (DoubleV (d ** fromInteger i))
                 (IntV i, DoubleV d) -> pure (DoubleV (fromInteger i ** d))
                 _ -> throwError $ RuntimeError "expectected numerical values for ^"
-        And ->
-            case (v0, v1) of
-                (BoolV b1, BoolV b2) -> pure (BoolV (b1 && b2))
-                _ -> throwError $ RuntimeError "expected booleans for &&"
-        Or ->
-            case (v0, v1) of
-                (BoolV b1, BoolV b2) -> pure (BoolV (b1 || b2))
-                _ -> throwError $ RuntimeError "expected booleans for ||"
-        Not -> throwError $ RuntimeError "not is a unary operator"
         Eq -> if v0 == v1 then pure (BoolV True) else pure (BoolV False)
         NotEq ->
             case (v0, v1) of
@@ -163,53 +142,5 @@ eval (BinOp op e0 e1) = do
                 (DoubleV d, IntV i) -> pure (BoolV (d <= fromInteger i))
                 (IntV i, DoubleV d) -> pure (BoolV (fromInteger i <= d))
                 _ -> throwError $ RuntimeError "expectected numerical values for <="
-eval (If cnd e0 e1) = do
-    cnd' <- eval cnd
-    case cnd' of
-        BoolV True -> eval e0
-        BoolV False -> eval e1
-        _ -> throwError $ RuntimeError "if expects bool"
 eval (Var v) = lookupVar v >>= eval
-eval (LetI v e0 e1) = do
-    bindVar v e0
-    eval e1
-eval (LetF f args body) = do
-    bindVar f (Lam args body)
-    pure $ ClosureV args body
-eval (LetR f args body) = do
-    bindVar f (Lam args body)
-    pure $ ClosureV args body
-eval (Lam args body) = pure $ ClosureV args body
 eval (Tuple es) = TupleV <$> mapM eval es
-eval (PlanE _) = undefined
-eval (App f args) = do
-    case f of
-        Lam params body -> applyFn params body args
-        Var v -> do
-            expr <- lookupVar v
-            case expr of
-                Var "print" -> do
-                    vals <- mapM eval args
-                    applyPrint vals
-                Var "transcribe" -> do
-                    vals <- mapM eval args
-                    applyTranscribe vals
-                Var "count_nucleotides" -> do
-                    vals <- mapM eval args
-                    applyCountNucleotides vals
-                Var "reverse_complement" -> do
-                    vals <- mapM eval args
-                    applyReverseComplement vals
-                Var "kmers" -> do
-                    vals <- mapM eval args
-                    applyKmers vals
-                _ -> do
-                    fVal <- eval expr
-                    case fVal of
-                        ClosureV params body -> applyFn params body args
-                        _ -> throwError $ RuntimeError (v ++ " is not a function")
-        _ -> do
-            fVal <- eval f
-            case fVal of
-                ClosureV params body -> applyFn params body args
-                _ -> throwError $ RuntimeError "application of non-function"

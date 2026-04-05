@@ -1,50 +1,21 @@
 module Syntax where
 
 import Data.List (intercalate)
-import Dataframe (Dataframe)
 import MPLTypes
 import Text.Parsec (ParseError)
+import Data.Ratio
+import Data.Complex (Complex)
 
 type Id = String
 
-data FileType
-    = Csv
-    | Fasta
-    | Fastq
-    | None
-
-fileType :: FilePath -> FileType
-fileType fp =
-    let ext = dropWhile (/= '.') fp
-     in case ext of
-            ".csv" -> Csv
-            ".fasta" -> Fasta
-            ".fastq" -> Fastq
-            _ -> None
-
-data Plan
-    = Read FilePath
-    | Write FilePath
-    | Filter Id Op Value
-    | Head Integer
-    | Tail Integer
-    | Select [Id]
-    deriving (Eq)
-
-instance Show Plan where
-    show (Read fp) = "read " ++ fp
-    show (Write fp) = "write " ++ fp
-    show (Filter col op val) = "filter " ++ col ++ " " ++ show op ++ " " ++ show val
-    show (Head i) = "head " ++ show i
-    show (Tail i) = "tail " ++ show i
-    show (Select cols) = "select " ++ unwords cols
-
 data Types
-    = IntT
-    | BoolT
+    = NumT
+    | IntT
     | DoubleT
+    | RatioT
+    | ComplexT
+    | BoolT
     | StringT
-    | NumT
     | FunT
     | DNAT
     | RNAT
@@ -55,6 +26,8 @@ data Types
 
 instance Show Types where
     show IntT = "int"
+    show RatioT = "rational"
+    show ComplexT = "complex"
     show BoolT = "bool"
     show StringT = "string"
     show FunT = "<function>"
@@ -68,6 +41,8 @@ instance Show Types where
 
 data Value
     = IntV Integer
+    | RatioV Rational
+    | ComplexV (Complex Value)
     | DoubleV Double
     | BoolV Bool
     | StringV String
@@ -76,7 +51,6 @@ data Value
     | ClosureV [Id] Expr
     | DNAV DNA
     | RNAV RNA
-    | DataframeV Dataframe
     deriving (Eq)
 
 typeOf :: Value -> Types
@@ -89,7 +63,8 @@ typeOf (ClosureV{}) = FunT
 typeOf (DNAV _) = DNAT
 typeOf (RNAV _) = RNAT
 typeOf (TupleV vals) = TupleT (map typeOf vals)
-typeOf (DataframeV _) = DataframeT
+typeOf (RatioV _) = RatioT
+typeOf (ComplexV _) = ComplexT
 
 instance Show Value where
     show (IntV i) = show i
@@ -102,7 +77,8 @@ instance Show Value where
     show (DNAV dna) = show dna
     show (RNAV rna) = show rna
     show (TupleV vals) = "(" ++ intercalate ", " (map show vals) ++ ")"
-    show (DataframeV t) = show t
+    show (RatioV r) = show r
+    show (ComplexV c) = show c
 
 data Op
     = Add
@@ -110,9 +86,6 @@ data Op
     | Mul
     | Div
     | Pow
-    | And
-    | Or
-    | Not
     | Eq
     | NotEq
     | Gt
@@ -128,9 +101,6 @@ instance Show Op where
     show Mul = "*"
     show Div = "/"
     show Pow = "^"
-    show And = "&&"
-    show Or = "||"
-    show Not = "not"
     show Eq = "=="
     show NotEq = "!="
     show Gt = ">"
@@ -141,32 +111,20 @@ instance Show Op where
 
 data Expr
     = Const Value
-    | UnOp Op Expr
     | BinOp Op Expr Expr
-    | If Expr Expr Expr
     | Var Id
-    | LetI Id Expr Expr
-    | LetF Id [Id] Expr
-    | LetR Id [Id] Expr
-    | Lam [Id] Expr
-    | App Expr [Expr]
     | Tuple [Expr]
-    | PlanE Plan
+    | Read String
+    | Write String
     deriving (Eq)
 
 instance Show Expr where
     show (Const v) = show v
-    show (UnOp o e) = show o ++ " " ++ show e
     show (BinOp op e0 e1) = show e0 ++ " " ++ show op ++ " " ++ show e1
-    show (If cnd e0 e1) = "if " ++ show cnd ++ " then " ++ show e0 ++ " else " ++ show e1
     show (Var v) = v
-    show (LetI v e0 e1) = "let " ++ v ++ " = " ++ show e0 ++ " in " ++ show e1
-    show (LetF f args e) = "let " ++ f ++ " " ++ unwords args ++ " = " ++ show e
-    show (LetR f args e) = "let rec " ++ f ++ " " ++ unwords args ++ " = " ++ show e
-    show (Lam args e) = "lambda " ++ unwords args ++ " -> " ++ show e
-    show (App e0 e1) = show e0 ++ " " ++ show e1
     show (Tuple es) = "(" ++ intercalate ", " (map show es) ++ ")"
-    show (PlanE p) = show p
+    show (Read str) = "read " ++ str
+    show (Write str) = "write " ++ str
 
 data Error
     = ParseE ParseError

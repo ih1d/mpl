@@ -10,7 +10,6 @@ import Syntax
 data Env = Env
     { _variables :: [(Id, Expr)]
     , _types :: [(Id, Types)]
-    , _plans :: [(Int, Plan)]
     , _nextRef :: Int
     }
 makeLenses ''Env
@@ -43,12 +42,6 @@ bindVar var expr = variables %= ((var, expr) :)
 
 bindType :: Id -> Types -> InterpM ()
 bindType tname ty = types %= ((tname, ty) :)
-
-bindPlan :: Plan -> InterpM ()
-bindPlan p = do
-    ref <- use nextRef
-    plans %= ((ref, p) :)
-    updateNextRef
 
 updateNextRef :: InterpM ()
 updateNextRef = nextRef += 1

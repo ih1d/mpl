@@ -11,16 +11,9 @@ import Text.Parsec.String (Parser)
 binary :: String -> Op -> Assoc -> Operator String () Identity Expr
 binary s op = Infix (mplReservedOp s >> return (BinOp op))
 
-prefix :: String -> Op -> Operator String () Identity Expr
-prefix s op = Prefix (mplReservedOp s >> return (UnOp op))
-
-prefixK :: String -> Op -> Operator String () Identity Expr
-prefixK s op = Prefix (mplReserved s >> return (UnOp op))
-
 opTable :: OperatorTable String () Identity Expr
 opTable =
-    [ [prefix "-" Sub, prefixK "not" Not]
-    , [binary "^" Pow AssocRight]
+    [ [binary "^" Pow AssocRight]
     , [binary "*" Mul AssocLeft, binary "/" Div AssocLeft]
     , [binary "+" Add AssocLeft, binary "-" Sub AssocLeft]
     ,
@@ -30,8 +23,6 @@ opTable =
         , binary ">=" GtEq AssocNone
         ]
     , [binary "==" Eq AssocNone, binary "!=" NotEq AssocNone]
-    , [binary "&&" And AssocLeft]
-    , [binary "||" Or AssocLeft]
     , [binary "|>" Pipe AssocLeft]
     ]
 
@@ -65,7 +56,7 @@ parseRNA = try $ mplLexeme $ do
 parseTupleOrParens :: Parser Expr
 parseTupleOrParens = do
     _ <- mplSymbol "("
-    es <- mplCommaSep parseExpr
+    es <- mplCommaSep parseTerm
     _ <- mplSymbol ")"
     pure $ case es of
         [] -> Const (UnitV ())
@@ -75,22 +66,12 @@ parseTupleOrParens = do
 parseRead :: Parser Expr
 parseRead = do
     mplReserved "read"
-    PlanE . Read <$> mplStringLiteral
+    Read <$> mplStringLiteral
 
 parseWrite :: Parser Expr
 parseWrite = do
     mplReserved "write"
-    PlanE . Write <$> mplStringLiteral
-
-parseHead :: Parser Expr
-parseHead = do
-    mplReserved "head"
-    PlanE . Head <$> mplInteger
-
-parseTail :: Parser Expr
-parseTail = do
-    mplReserved "tail"
-    PlanE . Tail <$> mplInteger
+    Write <$> mplStringLiteral
 
 parseAtom :: Parser Expr
 parseAtom =
@@ -103,74 +84,13 @@ parseAtom =
         <|> parseRNA
         <|> parseRead
         <|> parseWrite
-        <|> parseHead
-        <|> parseTail
         <|> parseVar
 
-parseApp :: Parser Expr
-parseApp = do
-    f <- parseAtom
-    args <- many parseAtom
-    pure $ case args of
-        [] -> f
-        _ -> App f args
-
 parseTerm :: Parser Expr
-parseTerm = buildExpressionParser opTable parseApp
-
-parseIf :: Parser Expr
-parseIf = do
-    mplReserved "if"
-    cnd <- parseExpr
-    mplReserved "then"
-    e0 <- parseExpr
-    mplReserved "else"
-    If cnd e0 <$> parseExpr
-
-parseLetIn :: Parser Expr
-parseLetIn = do
-    mplReserved "let"
-    v <- mplIdentifier
-    mplReservedOp "="
-    e0 <- parseExpr
-    mplReserved "in"
-    LetI v e0 <$> parseExpr
-
-parseLetF :: Parser Expr
-parseLetF = do
-    mplReserved "let"
-    f <- mplIdentifier
-    args <- many1 mplIdentifier
-    mplReservedOp "="
-    LetF f args <$> parseExpr
-
-parseLetR :: Parser Expr
-parseLetR = do
-    mplReserved "let"
-    mplReserved "rec"
-    f <- mplIdentifier
-    args <- many1 mplIdentifier
-    mplReservedOp "="
-    LetR f args <$> parseExpr
-
-parseLam :: Parser Expr
-parseLam = do
-    mplReserved "lambda"
-    args <- many mplIdentifier
-    mplReservedOp "->"
-    Lam args <$> parseExpr
-
-parseExpr :: Parser Expr
-parseExpr =
-    try parseLetR
-        <|> try parseLetIn
-        <|> parseLetF
-        <|> parseLam
-        <|> parseIf
-        <|> parseTerm
+parseTerm = buildExpressionParser opTable parseAtom
 
 parser :: String -> Either ParseError Expr
-parser = parse (mplWhiteSpace *> parseExpr <* eof) "mpl"
+parser = parse (mplWhiteSpace *> parseTerm <* eof) "mpl"
 
 parseLine :: String -> Either ParseError (Maybe Expr)
-parseLine = parse (mplWhiteSpace *> optionMaybe parseExpr <* eof) "mpl"
+parseLine = parse (mplWhiteSpace *> optionMaybe parseTerm <* eof) "mpl"

@@ -30,16 +30,9 @@ executable mpl
         Syntax
         Lexer
         MPLTypes
-        Dataframe
     build-depends:    base ^>=4.18.3.0
                     , mtl
                     , parsec
                     , microlens-platform
     hs-source-dirs:   src
     default-language: GHC2021
-    include-dirs:     cbits/include
-    if os(linux)
-        build-depends:
-            cuda
-    c-sources:
-        cbits/runtime.c
