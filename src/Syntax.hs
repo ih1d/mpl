@@ -1,10 +1,9 @@
 module Syntax where
 
+import Data.Complex (Complex)
 import Data.List (intercalate)
 import MPLTypes
 import Text.Parsec (ParseError)
-import Data.Ratio
-import Data.Complex (Complex)
 
 type Id = String
 

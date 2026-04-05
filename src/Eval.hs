@@ -1,10 +1,8 @@
 module Eval (initialEnv, runEval, runEvalExpr) where
 
 import Control.Monad.Except (MonadError (throwError))
-import Control.Monad.State
 import InterpM
 import Parser
-import Primitives
 import Syntax
 import TypeChecker
 
@@ -54,16 +52,6 @@ initTypeEnv =
 
 initialEnv :: Env
 initialEnv = Env initEnv initTypeEnv 1
-
--- apply a function with scoped parameter bindings
-applyFn :: [Id] -> Expr -> [Expr] -> InterpM Value
-applyFn params body args = do
-    env <- get
-    vals <- mapM eval args
-    mapM_ (\(p, v) -> bindVar p (Const v)) (zip params vals)
-    result <- eval body
-    put env
-    pure result
 
 -- evaluator
 eval :: Expr -> InterpM Value
@@ -142,5 +130,7 @@ eval (BinOp op e0 e1) = do
                 (DoubleV d, IntV i) -> pure (BoolV (d <= fromInteger i))
                 (IntV i, DoubleV d) -> pure (BoolV (fromInteger i <= d))
                 _ -> throwError $ RuntimeError "expectected numerical values for <="
+        _ -> undefined
 eval (Var v) = lookupVar v >>= eval
 eval (Tuple es) = TupleV <$> mapM eval es
+eval _ = undefined

@@ -1,6 +1,5 @@
 module TypeChecker where
 
-import Control.Monad (void)
 import Control.Monad.Except (MonadError (throwError))
 import InterpM
 import Syntax
@@ -130,6 +129,7 @@ tc (Var v)
         , "kmers"
         ]
 tc (Tuple es) = TupleT <$> mapM tc es
+tc _ = undefined
 
 contains :: Id -> Expr -> Bool
 contains _ (Const _) = False
