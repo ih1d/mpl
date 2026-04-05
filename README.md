@@ -1,6 +1,6 @@
 # El MegaProbe Language
 
-A programming language for high performance genomics computation
+A language for reproducing bioinformatics pipelines.
 
 ## Building & Running
 

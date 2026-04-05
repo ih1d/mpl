@@ -1,2 +1,0 @@
-let dna = ACGT in print (transcribe dna)
-let rna = ACGU in print rna

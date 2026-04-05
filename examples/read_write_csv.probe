@@ -1,1 +1,0 @@
-read "data/sample.csv" |> write "data/sample_new.csv"

@@ -12,7 +12,7 @@ mplDef =
     LanguageDef
         { commentStart = "(*"
         , commentEnd = "*)"
-        , commentLine = ""
+        , commentLine = "--"
         , nestedComments = True
         , identStart = letter <|> char '_'
         , identLetter = alphaNum <|> oneOf "_'"
@@ -23,30 +23,8 @@ mplDef =
         , caseSensitive = True
         }
   where
-    ops =
-        [ "+"
-        , "-"
-        , "*"
-        , "/"
-        , "^"
-        , "="
-        , "=="
-        , "!="
-        , "<"
-        , ">"
-        , "<="
-        , ">="
-        , "|>"
-        , "|"
-        ]
-    names =
-        [ "read"
-        , "write"
-        , "filter"
-        , "head"
-        , "tail"
-        , "select"
-        ]
+    ops = []
+    names = []
 
 mplReserved :: String -> Parser ()
 mplReserved = reserved mpl
