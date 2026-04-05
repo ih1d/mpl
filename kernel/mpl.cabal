@@ -34,5 +34,7 @@ executable mpl
                     , mtl
                     , parsec
                     , microlens-platform
+                    , websockets
+                    , aeson
     hs-source-dirs:   src
     default-language: GHC2021
