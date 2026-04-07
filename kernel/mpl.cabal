@@ -23,17 +23,14 @@ executable mpl
     main-is:          Main.hs
     other-modules:
         InterpM
-        TypeChecker
-        Primitives
         Eval
         Parser
         Syntax
         Lexer
-        MPLTypes
+        Dataframe
     build-depends:    base ^>=4.18.3.0
                     , mtl
                     , parsec
-                    , microlens-platform
                     , websockets
                     , aeson
     hs-source-dirs:   src

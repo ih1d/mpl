@@ -12,10 +12,10 @@ mplDef =
     LanguageDef
         { commentStart = "(*"
         , commentEnd = "*)"
-        , commentLine = "--"
+        , commentLine = ""
         , nestedComments = True
         , identStart = letter <|> char '_'
-        , identLetter = alphaNum <|> oneOf "_'"
+        , identLetter = alphaNum <|> char '_'
         , opStart = opLetter mplDef
         , opLetter = oneOf ":!#$%&*+./<=>?@\\^|-~"
         , reservedOpNames = ops
@@ -23,8 +23,8 @@ mplDef =
         , caseSensitive = True
         }
   where
-    ops = []
-    names = []
+    ops = ["="]
+    names = ["read10x", "read10x_h5", "computeQCMetrics"]
 
 mplReserved :: String -> Parser ()
 mplReserved = reserved mpl
