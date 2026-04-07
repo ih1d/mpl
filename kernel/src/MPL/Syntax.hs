@@ -1,4 +1,4 @@
-module Syntax where
+module MPL.Syntax where
 
 import Text.Parsec (ParseError)
 import Prelude hiding (Read)
@@ -25,8 +25,8 @@ instance Show Expr where
     show (VarE v) = v
     show (ReadE r str) = show r ++ " " ++ str
 
-data Stmt 
-    = Assign Id Expr 
+data Stmt
+    = Assign Id Expr
     | ExprS Expr
     deriving (Eq)
 

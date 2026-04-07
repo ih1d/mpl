@@ -1,7 +1,7 @@
-module Parser (parser, parseLine) where
+module MPL.Parser (parser, parseLine) where
 
-import Lexer
-import Syntax
+import MPL.Lexer
+import MPL.Syntax
 import Text.Parsec
 import Text.Parsec.String (Parser)
 

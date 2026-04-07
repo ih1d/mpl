@@ -22,16 +22,18 @@ executable mpl
     import:           warnings
     main-is:          Main.hs
     other-modules:
-        InterpM
-        Eval
-        Parser
-        Syntax
-        Lexer
-        Dataframe
+        MPL.Parser
+        MPL.Syntax
+        MPL.Lexer
+        Server
     build-depends:    base ^>=4.18.3.0
                     , mtl
                     , parsec
                     , websockets
                     , aeson
+                    , vector
+                    , bytestring
+                    , zlib
+                    , pipes
     hs-source-dirs:   src
     default-language: GHC2021
