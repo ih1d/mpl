@@ -8,4 +8,3 @@ data Dataframe r c = Dataframe
     , rowCount :: !Int
     , colCount :: !Int
     }
-

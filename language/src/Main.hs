@@ -1,7 +1,7 @@
 module Main where
 
-import System.IO (hSetBuffering, stdout, BufferMode(NoBuffering))
 import Parser
+import System.IO (BufferMode (NoBuffering), hSetBuffering, stdout)
 
 main :: IO ()
 main = do
