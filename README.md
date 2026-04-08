@@ -1,19 +1,6 @@
-# El MegaProbe Language
+# El MegaProbe Lab
 
-A language for reproducing bioinformatics pipelines.
+El MegaProbe Lab is an environment for running bioinformatics experiments
+with the main goal to make them reproducible.
 
-## Building & Running
-
-Ensure to install [Haskell](https://haskell.org). Recommended way is via [ghcup](https://www.haskell.org/ghcup/)
-
-To build:
-
-```sh
-cabal build
-```
-
-To run the interpreter/compiler:
-
-```sh
-cabal exec mpl # optional file
-```
+## [El MegaProbe Language](langauge/README.md)

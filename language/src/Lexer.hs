@@ -1,4 +1,4 @@
-module MPL.Lexer where
+module Lexer where
 
 import Text.Parsec
 import Text.Parsec.String (Parser)

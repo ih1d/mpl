@@ -1,4 +1,4 @@
-module MPL.Syntax where
+module Syntax where
 
 import Text.Parsec (ParseError)
 import Prelude hiding (Read)
